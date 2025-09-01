@@ -1,0 +1,1 @@
+robocopy "C:\Users\Reception\Documents" "E:\Documents" /MIR /XO /z /copy:DATSO /R:5 /W:1 /MT:32 /DCOPY:DATEX /LOG:C:\Logs\c_robocopy_sync.log
