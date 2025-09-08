@@ -58,8 +58,13 @@ public class SyncR{
     }
     
     public static void main(String[] args) { 
-        initializeRobocopyParameters();
-        ui = new SyncRUI();
+        syncThread();
+    }
+    
+    public static void syncThread(){
+        SyncThread syncThread = new SyncThread();
+        syncThread.run();
+        
     }
     
     public static void initializeRobocopyParameters(){

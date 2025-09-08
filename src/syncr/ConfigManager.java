@@ -24,22 +24,26 @@ public class ConfigManager {
         JFileChooser fChooser = new JFileChooser();
         fChooser.setDialogTitle("Select " + loc + " Directory");
         fChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        File selectedFile = new File("");
+        File selectedFile = null;
         
         if(fChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION){
             
             int confirm = JOptionPane.showConfirmDialog(ui.getGui(), "Are you sure of the selected directory?");
-            if(confirm == 0){
+            if(confirm == JOptionPane.YES_OPTION){
                 selectedFile = fChooser.getSelectedFile();
-                ui.appendToLogTextArea(loc+" directory selected \" " + selectedFile.getAbsolutePath() + " \" \n");
-                
+                ui.appendToLogTextArea(loc+" directory selected \" " + selectedFile.getAbsolutePath() + " \" \n");    
             }
-            else if(confirm == 1){
+            else if(confirm == JOptionPane.NO_OPTION){
                 System.out.println("no");
             } 
-            else{
+            else  if(confirm == JOptionPane.CANCEL_OPTION){
+                JOptionPane.showMessageDialog(ui.getGui(), "No \"" + loc + "\" folder selected", "SyncR", JOptionPane.WARNING_MESSAGE);
                 ui.appendToLogTextArea("No " + loc +" directory selected \n");
             }
+        }
+        else{
+            JOptionPane.showMessageDialog(ui.getGui(), "No \"" + loc + "\" folder selected", "SyncR", JOptionPane.WARNING_MESSAGE);
+            ui.appendToLogTextArea("No \"" + loc + "\" folder selected");
         }
         return selectedFile;
     } 

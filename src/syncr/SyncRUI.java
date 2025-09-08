@@ -15,6 +15,7 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -37,7 +38,7 @@ public class SyncRUI {
     
     private JButton destinationBtn;
     
-    private JButton syncData;
+    private JButton syncDataBtn;
     
     private ArrayList<String> selectedParameters = new ArrayList<>();
 
@@ -48,6 +49,8 @@ public class SyncRUI {
     private ConfigManager configManager = new ConfigManager(this);
     
     private final JLabel copyParametersLbl = new JLabel("Copy Parameters", JLabel.CENTER);
+    
+    private JButton syncOther;
     
     public SyncRUI() {
         gui = new JFrame("SyncR");
@@ -63,6 +66,7 @@ public class SyncRUI {
         // Text area in the center (with scroll if content grows)
         logTextArea = new JTextArea(10, 5);
         logTextArea.setEditable(false);
+        logTextArea.append("Please click the buttons \"Source\" and \"Destination\" to set the locations of the folders to sync\n");
         JScrollPane scrollPane = new JScrollPane(logTextArea);
 
         // Buttons at the bottom
@@ -80,22 +84,29 @@ public class SyncRUI {
         locationsPanel.add(sourceBtn);
         locationsPanel.add(destinationBtn);     
        
-        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
-        syncData = new JButton("Sync Drives/Folders");
-        syncData.addActionListener((e) -> {
-            new Thread(() -> syncManager.sync()).start();                   
+        JPanel bottomPanel = new JPanel(new FlowLayout());
+        syncDataBtn = new JButton("Sync Drives/Folders");
+        syncDataBtn.addActionListener((e) -> {
+            if(sourceLocation != null || destinationLocation != null){
+                new Thread(() -> syncManager.sync()).start(); 
+            }
+            else{
+                JOptionPane.showMessageDialog(gui, "Please click the buttons \"Source\" and \"Destination\" to set the locations of the folders to sync\n");
+            }
         });
 
-        bottomPanel.add(syncData);
-
+        syncOther = new JButton("Sync Other");
+        
+        bottomPanel.add(syncDataBtn, BorderLayout.NORTH);
+        bottomPanel.add(syncOther, BorderLayout.CENTER);
+        
         JPanel topPnl = new JPanel(new BorderLayout());
         topPnl.add(scrollPane, BorderLayout.NORTH);
        
         JPanel middlePnl = new JPanel(new BorderLayout());
             JPanel copyParamPnl = new JPanel(new GridLayout(4, 2));        
             Set<Map.Entry<String, JCheckBox>> entries = SyncR.getRobocopyParameters().entrySet();
- 
-            int count = 0;
+             
             for (Map.Entry<String, JCheckBox> entry : entries) {
                 String paramKey = entry.getKey();
                 JCheckBox checkBox = entry.getValue();
@@ -120,7 +131,7 @@ public class SyncRUI {
                 });
     
             }
-         middlePnl.add(copyParametersLbl, BorderLayout.NORTH);
+        middlePnl.add(copyParametersLbl, BorderLayout.NORTH);
         middlePnl.add(copyParamPnl, BorderLayout.CENTER);
         
         JPanel buttonPanel = new JPanel(new BorderLayout());
