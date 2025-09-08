@@ -6,14 +6,12 @@ package syncr;
 
 /**
  *
- * @author Reception
+ * @author Tshepo
  */
 public class SyncThread extends Thread{
     private SyncRUI ui;
     
-    
     public void run(){
-        
         SyncR.initializeRobocopyParameters();
         ui = new SyncRUI();
     }

@@ -19,7 +19,7 @@ import java.util.logging.Logger;
 
 /**
  *
- * @author Reception
+ * @author Tshepo
  */
 public class SyncManager {
     private SyncRUI ui;

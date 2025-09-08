@@ -5,6 +5,7 @@
 package syncr;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.io.File;
@@ -15,6 +16,9 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -23,7 +27,7 @@ import javax.swing.JTextField;
 
 /**
  *
- * @author Reception
+ * @author Tshepo
  */
 public class SyncRUI {
 
@@ -51,6 +55,11 @@ public class SyncRUI {
     private final JLabel copyParametersLbl = new JLabel("Copy Parameters", JLabel.CENTER);
     
     private JButton syncOther;
+    
+    //menu
+    private JMenu menu;
+    private JMenuBar menuBar;    
+    private JMenuItem syncJobMenuItem;
     
     public SyncRUI() {
         gui = new JFrame("SyncR");
@@ -96,6 +105,15 @@ public class SyncRUI {
         });
 
         syncOther = new JButton("Sync Other");
+        syncOther.addActionListener((e) -> {
+            int opt = JOptionPane.showConfirmDialog(gui, "Are you sure you'd like to start another \"Sync Session\"? ");
+            if(opt == JOptionPane.YES_OPTION){
+                System.out.println("new session");
+                
+                //save the data of the previous 
+                configManager.saveSyncSession();
+            }
+        });
         
         bottomPanel.add(syncDataBtn, BorderLayout.NORTH);
         bottomPanel.add(syncOther, BorderLayout.CENTER);
@@ -137,11 +155,22 @@ public class SyncRUI {
         JPanel buttonPanel = new JPanel(new BorderLayout());
         buttonPanel.add(locationsPanel, BorderLayout.CENTER);
         buttonPanel.add(bottomPanel, BorderLayout.SOUTH);
-
+        
+        //menu
+        menuBar = new JMenuBar();
+        
+        menu = new JMenu("Sync Jobs");
+        menuBar.add(menu);
+                
+        JMenuItem saveJobMenuItem = new JMenuItem("One");
+        menu.add(saveJobMenuItem);
+        
         mainpanel.add(topPnl, BorderLayout.NORTH);
         mainpanel.add(middlePnl, BorderLayout.CENTER);
         mainpanel.add(buttonPanel, BorderLayout.SOUTH);
+        
         // Add main panel to frame
+        gui.setJMenuBar(menuBar);
         gui.add(mainpanel);
         gui.setVisible(true);  
 
