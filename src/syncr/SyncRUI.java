@@ -1,0 +1,159 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+package syncr;
+
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.GridLayout;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.Set;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+
+/**
+ *
+ * @author Reception
+ */
+public class SyncRUI {
+
+    private static JFrame gui; 
+    
+    private JPanel mainpanel; 
+    private JLabel heading;
+    private JTextField outputTf;
+    private static JTextArea logTextArea;
+    
+    private JButton sourceBtn;
+    
+    private JButton destinationBtn;
+    
+    private JButton syncData;
+    
+    private ArrayList<String> selectedParameters = new ArrayList<>();
+
+    private File destinationLocation;
+    private File sourceLocation;
+    
+    private SyncManager syncManager = new SyncManager(this);
+    private ConfigManager configManager = new ConfigManager(this);
+    
+    private final JLabel copyParametersLbl = new JLabel("Copy Parameters", JLabel.CENTER);
+    
+    public SyncRUI() {
+        gui = new JFrame("SyncR");
+        gui.setSize(500, 400);
+        gui.setTitle("SyncR");
+        gui.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        gui.setLocationRelativeTo(null);
+        gui.setResizable(false);
+                
+       // Main panel with BorderLayout
+        mainpanel = new JPanel(new BorderLayout());
+
+        // Text area in the center (with scroll if content grows)
+        logTextArea = new JTextArea(10, 5);
+        logTextArea.setEditable(false);
+        JScrollPane scrollPane = new JScrollPane(logTextArea);
+
+        // Buttons at the bottom
+        JPanel locationsPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        sourceBtn = new JButton("Source");
+        sourceBtn.addActionListener((e) -> {
+            sourceLocation = configManager.fileChooser("Source");
+        });
+       
+        destinationBtn = new JButton("Destination");
+        destinationBtn.addActionListener((e) -> {
+            destinationLocation = configManager.fileChooser("Destination");
+        });
+
+        locationsPanel.add(sourceBtn);
+        locationsPanel.add(destinationBtn);     
+       
+        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        syncData = new JButton("Sync Drives/Folders");
+        syncData.addActionListener((e) -> {
+            new Thread(() -> syncManager.sync()).start();                   
+        });
+
+        bottomPanel.add(syncData);
+
+        JPanel topPnl = new JPanel(new BorderLayout());
+        topPnl.add(scrollPane, BorderLayout.NORTH);
+       
+        JPanel middlePnl = new JPanel(new BorderLayout());
+            JPanel copyParamPnl = new JPanel(new GridLayout(4, 2));        
+            Set<Map.Entry<String, JCheckBox>> entries = SyncR.getRobocopyParameters().entrySet();
+ 
+            int count = 0;
+            for (Map.Entry<String, JCheckBox> entry : entries) {
+                String paramKey = entry.getKey();
+                JCheckBox checkBox = entry.getValue();
+                
+                if(checkBox.isSelected() == true){
+                    selectedParameters.add(paramKey);                    
+                }
+                copyParamPnl.add(checkBox);
+                
+                //check box action listener
+                checkBox.addItemListener((e) -> {
+                    if(checkBox.isSelected()){
+                        if(!selectedParameters.contains(paramKey)){
+                            selectedParameters.add(paramKey);  
+                            logTextArea.append("\""+checkBox.getText()+"\" parameter added\n");
+                        }                       
+                    }
+                    else{
+                        selectedParameters.remove(paramKey);
+                        logTextArea.append("\""+checkBox.getText()+"\" parameter removed\n");
+                    }
+                });
+    
+            }
+         middlePnl.add(copyParametersLbl, BorderLayout.NORTH);
+        middlePnl.add(copyParamPnl, BorderLayout.CENTER);
+        
+        JPanel buttonPanel = new JPanel(new BorderLayout());
+        buttonPanel.add(locationsPanel, BorderLayout.CENTER);
+        buttonPanel.add(bottomPanel, BorderLayout.SOUTH);
+
+        mainpanel.add(topPnl, BorderLayout.NORTH);
+        mainpanel.add(middlePnl, BorderLayout.CENTER);
+        mainpanel.add(buttonPanel, BorderLayout.SOUTH);
+        // Add main panel to frame
+        gui.add(mainpanel);
+        gui.setVisible(true);  
+
+    }
+
+    public JFrame getGui() {
+        return gui;
+    }
+
+    public void appendToLogTextArea(String appMsg) {
+        logTextArea.append(appMsg);
+    }
+
+    public File getDestinationLocation() {
+        return destinationLocation;
+    }
+
+    public File getSourceLocation() {
+        return sourceLocation;
+    }    
+
+    public ArrayList<String> getSelectedParameters() {
+        return selectedParameters;
+    }
+  
+}
