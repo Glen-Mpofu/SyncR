@@ -14,6 +14,8 @@ import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 
 /**
@@ -27,19 +29,25 @@ public class ConfigManager {
     private Properties props;
     private File appFolder;
     
+    private File jobMainFolder;
+    
     private File logFile;
     
     private File jobFolder;
     
     public ConfigManager(SyncRUI ui) {
         this.ui = ui;
+        props = new Properties();
         
         appFolder = new File(basePath(), "SyncR");
         if(!appFolder.exists()){
             appFolder.mkdirs();
         }
         
-        jobFolder = new File(appFolder,"SyncJob"+1);
+        jobMainFolder = new File(appFolder, "Saved Sync Jobs");
+        if(!jobMainFolder.exists()) jobMainFolder.mkdir();
+        
+        jobFolder = new File(jobMainFolder,"SyncJob"+1);
         if(!jobFolder.exists()) jobFolder.mkdir();
         
         logFile = new File(jobFolder,"log_file.txt");
@@ -63,6 +71,7 @@ public class ConfigManager {
             if(confirm == JOptionPane.YES_OPTION){
                 selectedFile = fChooser.getSelectedFile();
                 ui.appendToLogTextArea(loc+" directory selected \" " + selectedFile.getAbsolutePath() + " \" \n");    
+                appendToLogFile(loc+" directory selected \" " + selectedFile.getAbsolutePath() + " \" \n");
             }
             else if(confirm == JOptionPane.NO_OPTION){
                 System.out.println("no");
@@ -70,11 +79,13 @@ public class ConfigManager {
             else  if(confirm == JOptionPane.CANCEL_OPTION){
                 JOptionPane.showMessageDialog(ui.getGui(), "No \"" + loc + "\" folder selected", "SyncR", JOptionPane.WARNING_MESSAGE);
                 ui.appendToLogTextArea("No " + loc +" directory selected \n");
+                appendToLogFile("No " + loc +" directory selected \n");
             }
         }
         else{
             JOptionPane.showMessageDialog(ui.getGui(), "No \"" + loc + "\" folder selected", "SyncR", JOptionPane.WARNING_MESSAGE);
             ui.appendToLogTextArea("No \"" + loc + "\" folder selected");
+            appendToLogFile("No " + loc +" directory selected \n");
         }
         return selectedFile;
     } 
@@ -92,8 +103,11 @@ public class ConfigManager {
         
         load();
         
-        System.out.println(configFile.getAbsolutePath());
+        saveSourceLoc();
+        saveDestinationLoc(); 
+        saveParameters();
         
+        JOptionPane.showMessageDialog(ui.getGui(), "SyncJob1 saved");
     }
     
     public String basePath(){
@@ -129,9 +143,9 @@ public class ConfigManager {
         save();
     }
     
-    private void appendToLogFile(String msg){
+    public void appendToLogFile(String msg){
         try {
-            FileWriter fw = new FileWriter(logFile);
+            FileWriter fw = new FileWriter(logFile, true);
             BufferedWriter bw = new BufferedWriter(fw);
             
             bw.append(msg);
@@ -142,5 +156,30 @@ public class ConfigManager {
         } catch (IOException ex) {
             Logger.getLogger(ConfigManager.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+    
+    public void loadingSyncJobs(JMenu menu){
+        File[] savedSyncJobs = appFolder.listFiles();
+        
+        JMenuItem syncJobMenuItem = new JMenuItem("");
+        menu.add(syncJobMenuItem);
+        
+        for (int i = 0; i < savedSyncJobs.length; i++) {
+            File job = savedSyncJobs[i];
+            
+            syncJobMenuItem = new JMenuItem(job.getName());
+            menu.add(syncJobMenuItem);
+        }
+    }
+    
+    public void setSyncJobCounter(){
+        File job_counter_log = new File(jobMainFolder, "job_counter_log.txt");
+        if(!job_counter_log.exists()) try {
+            job_counter_log.createNewFile();
+        } catch (IOException ex) {
+            Logger.getLogger(ConfigManager.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        
     }
 }

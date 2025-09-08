@@ -34,8 +34,6 @@ public class SyncRUI {
     private static JFrame gui; 
     
     private JPanel mainpanel; 
-    private JLabel heading;
-    private JTextField outputTf;
     private static JTextArea logTextArea;
     
     private JButton sourceBtn;
@@ -59,13 +57,14 @@ public class SyncRUI {
     //menu
     private JMenu menu;
     private JMenuBar menuBar;    
-    private JMenuItem syncJobMenuItem;
     
     public SyncRUI() {
         gui = new JFrame("SyncR");
         gui.setSize(500, 400);
         gui.setTitle("SyncR");
+        
         gui.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        
         gui.setLocationRelativeTo(null);
         gui.setResizable(false);
                 
@@ -76,6 +75,9 @@ public class SyncRUI {
         logTextArea = new JTextArea(10, 5);
         logTextArea.setEditable(false);
         logTextArea.append("Please click the buttons \"Source\" and \"Destination\" to set the locations of the folders to sync\n");
+        //config append
+        configManager.appendToLogFile("Please click the buttons \"Source\" and \"Destination\" to set the locations of the folders to sync\n");
+        
         JScrollPane scrollPane = new JScrollPane(logTextArea);
 
         // Buttons at the bottom
@@ -104,7 +106,7 @@ public class SyncRUI {
             }
         });
 
-        syncOther = new JButton("Sync Other");
+        syncOther = new JButton("Sync Other Folders");
         syncOther.addActionListener((e) -> {
             int opt = JOptionPane.showConfirmDialog(gui, "Are you sure you'd like to start another \"Sync Session\"? ");
             if(opt == JOptionPane.YES_OPTION){
@@ -112,6 +114,9 @@ public class SyncRUI {
                 
                 //save the data of the previous 
                 configManager.saveSyncSession();
+                SyncR.initializeNewSyncJob();
+                
+                
             }
         });
         
@@ -140,6 +145,7 @@ public class SyncRUI {
                         if(!selectedParameters.contains(paramKey)){
                             selectedParameters.add(paramKey);  
                             logTextArea.append("\""+checkBox.getText()+"\" parameter added\n");
+                            
                         }                       
                     }
                     else{
@@ -161,9 +167,9 @@ public class SyncRUI {
         
         menu = new JMenu("Sync Jobs");
         menuBar.add(menu);
-                
-        JMenuItem saveJobMenuItem = new JMenuItem("One");
-        menu.add(saveJobMenuItem);
+        
+        //loading saved sync jobs        
+        configManager.loadingSyncJobs(menu);
         
         mainpanel.add(topPnl, BorderLayout.NORTH);
         mainpanel.add(middlePnl, BorderLayout.CENTER);

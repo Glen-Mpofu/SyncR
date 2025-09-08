@@ -25,10 +25,9 @@ public class SyncR{
         syncThread();
     }
     
-    public static void syncThread(){
-        SyncThread syncThread = new SyncThread();
-        syncThread.run();
-        
+    public static void syncThread(){        
+        initializeNewSyncJob();
+        ui = new SyncRUI();
     }
     
     public static void initializeRobocopyParameters(){
@@ -52,5 +51,10 @@ public class SyncR{
 
     public static Map<String, JCheckBox> getRobocopyParameters() {
         return robocopyParameters;
+    }
+    
+    public static void initializeNewSyncJob(){
+        SyncThread syncThread = new SyncThread();
+        syncThread.run();
     }
 }
