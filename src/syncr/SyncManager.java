@@ -111,6 +111,4 @@ public class SyncManager {
             Logger.getLogger(SyncR.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
-    
 }

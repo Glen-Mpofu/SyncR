@@ -60,7 +60,7 @@ public class SyncRUI {
     
     public SyncRUI() {
         gui = new JFrame("SyncR");
-        gui.setSize(500, 400);
+        gui.setSize(500, 420);
         gui.setTitle("SyncR");
         
         gui.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -114,17 +114,23 @@ public class SyncRUI {
                 
                 //save the data of the previous 
                 configManager.saveSyncSession();
+                
+                int incrementor = configManager.incrementor();
+                configManager.setSyncJobCounter(incrementor);
+                
                 SyncR.initializeNewSyncJob();
-                
-                
             }
         });
         
         bottomPanel.add(syncDataBtn, BorderLayout.NORTH);
         bottomPanel.add(syncOther, BorderLayout.CENTER);
         
+        JLabel jobHeading = new JLabel(configManager.getJobFolderName());
+        jobHeading.setHorizontalAlignment(JLabel.CENTER);
+        
         JPanel topPnl = new JPanel(new BorderLayout());
-        topPnl.add(scrollPane, BorderLayout.NORTH);
+        topPnl.add(jobHeading, BorderLayout.NORTH);
+        topPnl.add(scrollPane, BorderLayout.CENTER);
        
         JPanel middlePnl = new JPanel(new BorderLayout());
             JPanel copyParamPnl = new JPanel(new GridLayout(4, 2));        

@@ -4,10 +4,13 @@
  */
 package syncr;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Properties;
@@ -33,8 +36,13 @@ public class ConfigManager {
     
     private File logFile;
     
-    private File jobFolder;
+    private File jobFolderName;
     
+    // sync counter
+    private File job_counter_log;
+    
+    
+    //methods and classes
     public ConfigManager(SyncRUI ui) {
         this.ui = ui;
         props = new Properties();
@@ -47,15 +55,25 @@ public class ConfigManager {
         jobMainFolder = new File(appFolder, "Saved Sync Jobs");
         if(!jobMainFolder.exists()) jobMainFolder.mkdir();
         
-        jobFolder = new File(jobMainFolder,"SyncJob"+1);
-        if(!jobFolder.exists()) jobFolder.mkdir();
+        job_counter_log = new File(jobMainFolder, "job_counter_log.txt");
+        if(!job_counter_log.exists()) try {
+            job_counter_log.createNewFile();          
+        } catch (IOException ex) {
+            Logger.getLogger(ConfigManager.class.getName()).log(Level.SEVERE, null, ex);
+        }
         
-        logFile = new File(jobFolder,"log_file.txt");
+        int jobNumber = incrementor();
+        
+        jobFolderName = new File(jobMainFolder,"SyncJob"+jobNumber);
+        if(!jobFolderName.exists()) jobFolderName.mkdir();
+        setSyncJobCounter(jobNumber);  
+        
+        logFile = new File(jobFolderName,"log_file.txt");
         if(!logFile.exists()) try {
             logFile.createNewFile();
         } catch (IOException ex) {
             Logger.getLogger(ConfigManager.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        }                
     }
     
     public File fileChooser(String loc){
@@ -99,7 +117,7 @@ public class ConfigManager {
         
         String name = src.substring(src.lastIndexOf("\\")+1, src.length()) + "to" + dest.substring(dest.lastIndexOf("\\")+1, dest.length()) + ".properties";
         
-        configFile = new File(jobFolder, name.toLowerCase());
+        configFile = new File(jobFolderName, name.toLowerCase());
         
         load();
         
@@ -107,7 +125,7 @@ public class ConfigManager {
         saveDestinationLoc(); 
         saveParameters();
         
-        JOptionPane.showMessageDialog(ui.getGui(), "SyncJob1 saved");
+        JOptionPane.showMessageDialog(ui.getGui(), getJobFolderName() + " saved");
     }
     
     public String basePath(){
@@ -159,7 +177,7 @@ public class ConfigManager {
     }
     
     public void loadingSyncJobs(JMenu menu){
-        File[] savedSyncJobs = appFolder.listFiles();
+        File[] savedSyncJobs = jobMainFolder.listFiles();
         
         JMenuItem syncJobMenuItem = new JMenuItem("");
         menu.add(syncJobMenuItem);
@@ -168,18 +186,44 @@ public class ConfigManager {
             File job = savedSyncJobs[i];
             
             syncJobMenuItem = new JMenuItem(job.getName());
-            menu.add(syncJobMenuItem);
+            if(!job.getName().endsWith("txt")){
+                menu.add(syncJobMenuItem);
+            }
         }
     }
     
-    public void setSyncJobCounter(){
-        File job_counter_log = new File(jobMainFolder, "job_counter_log.txt");
-        if(!job_counter_log.exists()) try {
-            job_counter_log.createNewFile();
+    public int incrementor(){
+        Integer stored_count = getSyncJobCounter();
+        int increment_count;
+        
+        if(stored_count == null){
+            increment_count = 1;
+        }
+        else{
+            increment_count = stored_count+1;
+        }
+        return increment_count;
+    }
+    
+    public void setSyncJobCounter(int jobNumber){
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(job_counter_log))){
+            bw.write(String.valueOf(jobNumber));
         } catch (IOException ex) {
             Logger.getLogger(ConfigManager.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
-        
+    } 
+    
+    public Integer getSyncJobCounter() {
+        try (BufferedReader br = new BufferedReader(new FileReader(job_counter_log))) {
+            String val = br.readLine();
+            return (val != null) ? Integer.parseInt(val.trim()) : null;
+        } catch (IOException | NumberFormatException ex) {
+            Logger.getLogger(ConfigManager.class.getName()).log(Level.SEVERE, null, ex);
+            return null;
+        }
+    }
+
+    public String getJobFolderName() {
+        return jobFolderName.getName();
     }
 }
