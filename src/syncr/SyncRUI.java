@@ -5,7 +5,6 @@
 package syncr;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.io.File;
@@ -26,46 +25,51 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-import javax.swing.JTextField;
 
 /**
  *
  * @author Tshepo
  */
 public class SyncRUI {
-
+    // GUI FRAME
     private static JFrame gui; 
     
+    //PANELS
     private JPanel mainpanel; 
+    
+    //TEXT AREAS
     private static JTextArea logTextArea;
     
-    private JButton sourceBtn;
-    
-    private JButton destinationBtn;
-    
+    // ALL MY BUTTONS
+    private JButton sourceBtn;    
+    private JButton destinationBtn;    
     private JButton syncDataBtn;
+    private JButton saveSyncJob;
     
-    private ArrayList<String> selectedParameters = new ArrayList<>();
-
+    //LISTS
+        private ArrayList<String> selectedParameters = new ArrayList<>();
+        //check boxes map
+        private Set<Map.Entry<String, JCheckBox>> entries;
+        
+    // FILES
     private File destinationLocation;
     private File sourceLocation;
     
+    // MANAGER CLASSES
     private SyncManager syncManager = new SyncManager(this);
     private ConfigManager configManager = new ConfigManager(this);
     
-    private final JLabel copyParametersLbl = new JLabel("Copy Parameters", JLabel.CENTER);
-    
-    private JButton syncOther;
-    
+    // LABELS
+    private final JLabel copyParametersLbl = new JLabel("Copy Parameters", JLabel.CENTER);    
     private JLabel jobHeading;
-    //menu
+    
+    //MENU, MENU BAR AND MENU ITEMS
     private JMenu menu;
-    private JMenuBar menuBar;    
+    private JMenu newSyncJobMenu;
+    private JMenuBar menuBar;        
     
     
-    //check boxes map
-    private Set<Map.Entry<String, JCheckBox>> entries;
-    
+    //CLASSES AND METHODS
     public SyncRUI() {
         gui = new JFrame("SyncR");
         gui.setSize(500, 420);
@@ -90,80 +94,57 @@ public class SyncRUI {
 
         // Buttons at the bottom
         JPanel locationsPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
-        sourceBtn = new JButton("Source");
-        sourceBtn.addActionListener((e) -> {
-            sourceLocation = configManager.fileChooser("Source");
-        });
-       
-        destinationBtn = new JButton("Destination");
-        destinationBtn.addActionListener((e) -> {
-            destinationLocation = configManager.fileChooser("Destination");
-        });
+            //SETTING THE SOURCE LOCATION
+            sourceBtn = new JButton("Source");
+            sourceBtn.addActionListener((e) -> {
+                sourceLocation = configManager.fileChooser("Source");
+            });
+
+            //SETTING THE DESTINATION LOCATION
+            destinationBtn = new JButton("Destination");
+            destinationBtn.addActionListener((e) -> {
+                destinationLocation = configManager.fileChooser("Destination");
+            });
 
         locationsPanel.add(sourceBtn);
         locationsPanel.add(destinationBtn);     
        
         JPanel bottomPanel = new JPanel(new FlowLayout());
-        syncDataBtn = new JButton("Sync Drives/Folders");
-        syncDataBtn.addActionListener((e) -> {
-            if(sourceLocation != null || destinationLocation != null){
-                new Thread(() -> syncManager.sync()).start(); 
-            }
-            else{
-                JOptionPane.showMessageDialog(gui, "Please click the buttons \"Source\" and \"Destination\" to set the locations of the folders to sync\n");
-            }
-        });
-
-        syncOther = new JButton("Sync Other Folders");
-        syncOther.addActionListener((e) -> {
-            int opt = JOptionPane.showConfirmDialog(gui, "Are you sure you'd like to start another \"Sync Session\"? ");
-            if(opt == JOptionPane.YES_OPTION){                
-                //save the data of the previous 
-                configManager.saveSyncSession();
-                
-                int newJobNumber = configManager.incrementor();
-                File newJobFolder = new File(configManager.getJobMainFolder(), "SyncJob"+newJobNumber);
-                if(!newJobFolder.exists())  newJobFolder.mkdir();
-                
-                configManager.setJobFolderName(newJobFolder);
-                configManager.setSyncJobCounter(newJobNumber);
-                
-                sourceLocation = null;
-                destinationLocation = null;
-                
-                logTextArea.setText("Please click the buttons \"Source\" and \"Destination\" to set the locations of the folders to sync\n");
-                addingNewParameters("[/MIR, /Z, /XO, /XX]");
-                
-                jobHeading.setText(newJobFolder.getName());
-                
-                File newLogFile = new File(newJobFolder, "log_file.txt");
-                if(!newLogFile.exists()) try {
-                    newLogFile.createNewFile();
-                } catch (IOException ex) {
-                    Logger.getLogger(SyncRUI.class.getName()).log(Level.SEVERE, null, ex);
+            // SYNCING THE 2 SELECTED FOLDERS -> SOURCE AND DESTINATION
+            syncDataBtn = new JButton("Sync Drives/Folders");
+            syncDataBtn.addActionListener((e) -> {
+                if(sourceLocation != null || destinationLocation != null){
+                    new Thread(() -> syncManager.sync()).start(); 
                 }
-                
-                File newConfigFile = new File(newJobFolder, "sync_job"+newJobNumber+".properties");
-                configManager.setConfigFile(newConfigFile);
-                
-                JOptionPane.showMessageDialog(gui, "New Sync Job. Set up the Required Parameters for it!!", "New Sync Job", JOptionPane.INFORMATION_MESSAGE);
-            }
-        });
+                else{
+                    JOptionPane.showMessageDialog(gui, "Please click the buttons \"Source\" and \"Destination\" to set the locations of the folders to sync\n");
+                }
+            });
+
+            //SAVING THE SYNC JOB DATA 
+            saveSyncJob = new JButton("Save Sync Job");
+            saveSyncJob.addActionListener((e) -> {
+                configManager.saveSyncSession();
+                JOptionPane.showMessageDialog(gui, "Changes Saved", "Save", JOptionPane.INFORMATION_MESSAGE);
+            });
         
         bottomPanel.add(syncDataBtn, BorderLayout.NORTH);
-        bottomPanel.add(syncOther, BorderLayout.CENTER);
+        bottomPanel.add(saveSyncJob, BorderLayout.CENTER);
         
-        jobHeading = new JLabel(configManager.getJobFolderName());
-        jobHeading.setHorizontalAlignment(JLabel.CENTER);
-        
+        // PANEL WITH THE TEXTAREA AND HEADING
         JPanel topPnl = new JPanel(new BorderLayout());
+        // HEADING FOR EACH JOB -> DYNAMIC. NAMED AFTER THE RESPECTIVE JOB
+            jobHeading = new JLabel(configManager.getJobFolderName());
+            jobHeading.setHorizontalAlignment(JLabel.CENTER);
         topPnl.add(jobHeading, BorderLayout.NORTH);
         topPnl.add(scrollPane, BorderLayout.CENTER);
        
+        // PANEL WITH THE CHECKBOXES
         JPanel middlePnl = new JPanel(new BorderLayout());
             JPanel copyParamPnl = new JPanel(new GridLayout(4, 2));        
             entries = SyncR.getRobocopyParameters().entrySet();
              
+            // ITERATING THROUGH THE PARAMETERS AND ADDING THEM TO THE UI
             for (Map.Entry<String, JCheckBox> entry : entries) {
                 String paramKey = entry.getKey();
                 JCheckBox checkBox = entry.getValue();
@@ -191,18 +172,69 @@ public class SyncRUI {
         middlePnl.add(copyParametersLbl, BorderLayout.NORTH);
         middlePnl.add(copyParamPnl, BorderLayout.CENTER);
         
+        
+        //PANEL WITH THE SOURCE AND DESTINATION PANEL, AND THE SAVE BUTTON
         JPanel buttonPanel = new JPanel(new BorderLayout());
-        buttonPanel.add(locationsPanel, BorderLayout.CENTER);
-        buttonPanel.add(bottomPanel, BorderLayout.SOUTH);
+            buttonPanel.add(locationsPanel, BorderLayout.CENTER);
+            buttonPanel.add(bottomPanel, BorderLayout.SOUTH);
         
-        //menu
-        menuBar = new JMenuBar();
-        
+        // MENU CREATING AND INSTANTIATION
+        menuBar = new JMenuBar();        
         menu = new JMenu("Sync Jobs");
-        menuBar.add(menu);
+        
+        newSyncJobMenu = new JMenu("New Sync Job");
+        JMenuItem newJobItem = new JMenuItem("New");
+        
+        //NEW JOB MENU ITEM. WHEN SELECTED IT INITIALISES A NEW SYNC JOB. CHANGES THE UI TO A DEFAULT ONE
+        newJobItem.addActionListener((e) -> {
+            int opt = JOptionPane.showConfirmDialog(gui, "Are you sure you'd like to start another \"Sync Session\"? ");
+                if(opt == JOptionPane.YES_OPTION){                
+                    //save the data of the previous 
+                    configManager.saveSyncSession();
+                    
+                    // CREATING THE FOLDER OF THE NEW JOB 
+                    int newJobNumber = configManager.incrementor();
+                    File newJobFolder = new File(configManager.getJobMainFolder(), "SyncJob"+newJobNumber);
+                    if(!newJobFolder.exists())  newJobFolder.mkdir();
+
+                    configManager.setJobFolderName(newJobFolder);
+                    configManager.setSyncJobCounter(newJobNumber);
+
+                    // SETTING THESE TO NULL. IDK WHY I DID THIS :(
+                    sourceLocation = null;
+                    destinationLocation = null;
+                    
+                    //SETTING THE TEXT AREA TO A DEFAULT MESSAGE FOR THE RESTART
+                    logTextArea.setText("Please click the buttons \"Source\" and \"Destination\" to set the locations of the folders to sync\n");
+                    addingNewParameters("[/MIR, /Z, /XO, /XX]");
+
+                    //SETTING THE HEADING TO THE NEW JOB NAME
+                    jobHeading.setText(newJobFolder.getName());
+
+                    
+                    //NEW LOG FILE CREATION
+                    File newLogFile = new File(newJobFolder, "log_file.txt");
+                    if(!newLogFile.exists()) try {
+                        newLogFile.createNewFile();
+                    } catch (IOException ex) {
+                        Logger.getLogger(SyncRUI.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+
+                    //NEW CONFIG FILE CREATION AND OVERRIDING THE OLD ONE
+                    File newConfigFile = new File(newJobFolder, "sync_job"+newJobNumber+".properties");
+                    configManager.setConfigFile(newConfigFile);
+
+                    JOptionPane.showMessageDialog(gui, "New Sync Job. Set up the Required Parameters for it!!", "New Sync Job", JOptionPane.INFORMATION_MESSAGE);
+                }
+        });
         
         //loading saved sync jobs        
         loadingSyncJobs(menu);
+        
+        newSyncJobMenu.add(newJobItem);
+        
+        menuBar.add(menu);
+        menuBar.add(newSyncJobMenu);
         
         mainpanel.add(topPnl, BorderLayout.NORTH);
         mainpanel.add(middlePnl, BorderLayout.CENTER);
@@ -214,10 +246,12 @@ public class SyncRUI {
         gui.setVisible(true);  
     }
 
+    // I DID THIS SO ALL JOPTIONPANES IN THE OTHER CLASSES DISPLAY ON TOP OF THE GUI WHEN THEY APPEAR ON THE SCREEEN
     public JFrame getGui() {
         return gui;
     }
 
+    // METHOD FOR LOGGING TO THE TEXT AREA
     public void appendToLogTextArea(String appMsg) {
         logTextArea.append(appMsg);
     }
@@ -261,20 +295,21 @@ public class SyncRUI {
         File configFile = null;
         File logFile = null;
         for (File listJobFile : listJobFiles) {
+            // LOOKING FOR THE CONFIG PROPERTIES FILE
             if(listJobFile.getName().endsWith(".properties")){
                 configFile = listJobFile;
             }
+            //LOOKING FOR THE LOG FILE
             else if(listJobFile.getName().endsWith(".txt")){
                 logFile = listJobFile;
             }
         }
         
+        //SETTING THE NEW SOURCE/DESTINATION LOCATION, AND PARAMETERS
         String newSource = configManager.getSourceLoc(configFile);
         String newDest = configManager.getDestinationLoc(configFile);
         String parameters = configManager.getParameters(configFile);
         addingNewParameters(parameters);
-        
-        System.out.println(parameters);
         
         String log = configManager.getLog(logFile);
         
@@ -285,6 +320,8 @@ public class SyncRUI {
         configManager.setJobFolderName(job); 
     }    
     
+    
+    //METHOD FOR CHECKING OR UNCHECKING THE PARAMETERS BASED ON THE JOB LOADED
     public void addingNewParameters(String parameters){
         parameters = parameters.replaceAll("[\\[\\]]", "");
         String[] token = parameters.split("\\s*,\\s*");
