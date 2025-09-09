@@ -10,6 +10,7 @@ import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.Toolkit;
+import java.awt.event.WindowAdapter;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -30,7 +31,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-import javax.swing.border.BevelBorder;
 import javax.swing.border.Border;
 import javax.swing.plaf.basic.BasicBorders;
 
@@ -83,7 +83,7 @@ public class SyncRUI {
         gui.setSize(500, 420);
         gui.setTitle("SyncR");
         
-        gui.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        gui.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
                
         gui.setLocationRelativeTo(null);
         gui.setResizable(false);
@@ -262,6 +262,37 @@ public class SyncRUI {
         mainpanel.add(middlePnl, BorderLayout.CENTER);
         mainpanel.add(buttonPanel, BorderLayout.SOUTH);
         
+        //listening to the UI os when it's closed, the current sync job is saved
+        gui.addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent e){
+                int choice = JOptionPane.showConfirmDialog(gui, "Do you want to save this Sync Job before exiting?", "Exit SyncR", JOptionPane.YES_NO_CANCEL_OPTION);
+                
+                if(choice == JOptionPane.YES_OPTION){
+                    configManager.saveSyncSession();
+                    gui.dispose();
+                }
+                else if (choice == JOptionPane.NO_OPTION){
+                    //DELETE SYNCJOB FILE AND MINUS 1 FROM THE SAVED SYNC JOB COUNTER
+                    File job_folder = new File(configManager.getJobMainFolder(),configManager.getJobFolderName());
+                    
+                    //deleting the files inside first
+                    File files[] = job_folder.listFiles();
+                    for (File file : files) {
+                        file.delete();
+                    }
+                    
+                    //deleting the folder
+                    job_folder.delete();
+                    
+                    //System.out.println(job_folder.getAbsolutePath());
+                    
+                    configManager.setSyncJobCounter(configManager.getSyncJobCounter()-1);
+                    gui.dispose();
+                }                
+            }
+        });
+        
         // Add main panel to frame
         gui.setJMenuBar(menuBar);
         gui.add(mainpanel);
@@ -364,6 +395,12 @@ public class SyncRUI {
                 cb.setSelected(true);
             }
         }
+        
+        // REFRESHING SO NEW JOBS ARE ADDED IMMEDIATELY AFTER BEING CREATED
+        menu.removeAll();
+        loadingSyncJobs(menu);
+        menu.revalidate();
+        menu.repaint();
     }   
        
 }
