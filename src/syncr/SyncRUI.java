@@ -5,15 +5,20 @@
 package syncr;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
+import java.awt.Image;
+import java.awt.Toolkit;
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFrame;
@@ -25,6 +30,9 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.border.BevelBorder;
+import javax.swing.border.Border;
+import javax.swing.plaf.basic.BasicBorders;
 
 /**
  *
@@ -79,7 +87,18 @@ public class SyncRUI {
                
         gui.setLocationRelativeTo(null);
         gui.setResizable(false);
-                
+        
+        //SETTING THE ICON
+        URL iconUrl = getClass().getResource("/resources/SyncRLogo.png");
+        if(iconUrl != null){
+            Image icon = Toolkit.getDefaultToolkit().getImage(iconUrl);
+            gui.setIconImage(icon);
+        }
+        else{
+            System.err.println("Icon not found");
+        }
+            
+        
        // Main panel with BorderLayout
         mainpanel = new JPanel(new BorderLayout());
 
@@ -123,6 +142,9 @@ public class SyncRUI {
 
             //SAVING THE SYNC JOB DATA 
             saveSyncJob = new JButton("Save Sync Job");
+            Border border = new BasicBorders.ButtonBorder(Color.yellow, Color.darkGray, Color.lightGray, Color.lightGray);
+            saveSyncJob.setBorder(border);
+            
             saveSyncJob.addActionListener((e) -> {
                 configManager.saveSyncSession();
                 JOptionPane.showMessageDialog(gui, "Changes Saved", "Save", JOptionPane.INFORMATION_MESSAGE);
@@ -343,4 +365,5 @@ public class SyncRUI {
             }
         }
     }   
+       
 }
