@@ -40,8 +40,7 @@ public class ConfigManager {
     
     // sync counter
     private File job_counter_log;
-    
-    
+
     //methods and classes
     public ConfigManager(SyncRUI ui) {
         this.ui = ui;
@@ -139,6 +138,13 @@ public class ConfigManager {
             } catch (IOException ignored) {}
         }
     }
+    private void load(File jobConfigFile) {
+        if (jobConfigFile.exists()) {
+            try (FileInputStream fis = new FileInputStream(jobConfigFile)) {
+                props.load(fis);
+            } catch (IOException ignored) {}
+        }
+    }
     
     private void save() {
         try (FileOutputStream fos = new FileOutputStream(configFile)) {
@@ -155,11 +161,60 @@ public class ConfigManager {
         props.setProperty("SourceLocation", ui.getSourceLocation().getAbsolutePath());
         save();
     }
-    
     private void saveDestinationLoc(){
         props.setProperty("DestinationLocation", ui.getDestinationLocation().getAbsolutePath());
         save();
     }
+    
+    //getting the infor stored in the properties folder
+    public String getSourceLoc(File jobConfigFile){
+        load(jobConfigFile);
+        String source = props.getProperty("SourceLocation");
+        
+        return source;
+    }
+    
+    public String getDestinationLoc(File jobConfigFile){
+        load(jobConfigFile);
+        String dest = props.getProperty("DestinationLocation");
+        
+        return dest;
+    }
+    
+    public String getParameters(File jobConfigFile){
+        load(jobConfigFile);
+        String paramters = props.getProperty("Parameters");
+        
+        return paramters;
+    }
+    ///
+    
+    public String getLog(File jobLogFile){
+        FileReader fr = null;
+            String log = "";
+        try {
+            fr = new FileReader(jobLogFile);
+            BufferedReader br = new BufferedReader(fr);
+            
+            String token = br.readLine();
+            while(token != null){
+                log += token + "\n";
+                
+                token = br.readLine();
+            }
+            
+        } catch (IOException ex) {
+            Logger.getLogger(ConfigManager.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                fr.close();
+            } catch (IOException ex) {
+                Logger.getLogger(ConfigManager.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        
+        return log;
+    }            
     
     public void appendToLogFile(String msg){
         try {
@@ -175,23 +230,7 @@ public class ConfigManager {
             Logger.getLogger(ConfigManager.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
-    public void loadingSyncJobs(JMenu menu){
-        File[] savedSyncJobs = jobMainFolder.listFiles();
-        
-        JMenuItem syncJobMenuItem = new JMenuItem("");
-        menu.add(syncJobMenuItem);
-        
-        for (int i = 0; i < savedSyncJobs.length; i++) {
-            File job = savedSyncJobs[i];
-            
-            syncJobMenuItem = new JMenuItem(job.getName());
-            if(!job.getName().endsWith("txt")){
-                menu.add(syncJobMenuItem);
-            }
-        }
-    }
-    
+
     public int incrementor(){
         Integer stored_count = getSyncJobCounter();
         int increment_count;
@@ -226,4 +265,9 @@ public class ConfigManager {
     public String getJobFolderName() {
         return jobFolderName.getName();
     }
+
+    public File getJobMainFolder() {
+        return jobMainFolder;
+    }
+ 
 }

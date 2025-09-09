@@ -54,6 +54,7 @@ public class SyncRUI {
     
     private JButton syncOther;
     
+    private JLabel jobHeading;
     //menu
     private JMenu menu;
     private JMenuBar menuBar;    
@@ -125,7 +126,7 @@ public class SyncRUI {
         bottomPanel.add(syncDataBtn, BorderLayout.NORTH);
         bottomPanel.add(syncOther, BorderLayout.CENTER);
         
-        JLabel jobHeading = new JLabel(configManager.getJobFolderName());
+        jobHeading = new JLabel(configManager.getJobFolderName());
         jobHeading.setHorizontalAlignment(JLabel.CENTER);
         
         JPanel topPnl = new JPanel(new BorderLayout());
@@ -150,13 +151,12 @@ public class SyncRUI {
                     if(checkBox.isSelected()){
                         if(!selectedParameters.contains(paramKey)){
                             selectedParameters.add(paramKey);  
-                            logTextArea.append("\""+checkBox.getText()+"\" parameter added\n");
-                            
+                            logTextArea.append("\""+checkBox.getText()+" \"parameter added\n");                            
                         }                       
                     }
                     else{
                         selectedParameters.remove(paramKey);
-                        logTextArea.append("\""+checkBox.getText()+"\" parameter removed\n");
+                        logTextArea.append("\""+checkBox.getText()+" \"parameter removed\n");
                     }
                 });
     
@@ -175,7 +175,7 @@ public class SyncRUI {
         menuBar.add(menu);
         
         //loading saved sync jobs        
-        configManager.loadingSyncJobs(menu);
+        loadingSyncJobs(menu);
         
         mainpanel.add(topPnl, BorderLayout.NORTH);
         mainpanel.add(middlePnl, BorderLayout.CENTER);
@@ -207,5 +207,51 @@ public class SyncRUI {
     public ArrayList<String> getSelectedParameters() {
         return selectedParameters;
     }
-  
+    
+    public void loadingSyncJobs(JMenu menu){
+        File[] savedSyncJobs = configManager.getJobMainFolder().listFiles();
+        
+        JMenuItem syncJobMenuItem;
+        
+        for (int i = 0; i < savedSyncJobs.length; i++) {
+            File job = savedSyncJobs[i];
+            
+            syncJobMenuItem = new JMenuItem(job.getName());
+            if(!job.getName().endsWith("txt")){
+                syncJobMenuItem.addActionListener((e) -> {
+                    jobHeading.setText(job.getName());
+                    getJobParameters(job);
+                });
+                
+                menu.add(syncJobMenuItem);
+            }
+        }
+    }
+
+    private void getJobParameters(File job) {
+        File[] listJobFiles = job.listFiles();
+        File configFile = null;
+        File logFile = null;
+        for (File listJobFile : listJobFiles) {
+            if(listJobFile.getName().endsWith(".properties")){
+                configFile = listJobFile;
+            }
+            else if(listJobFile.getName().endsWith(".txt")){
+                logFile = listJobFile;
+            }
+        }
+        
+        String newSource = configManager.getSourceLoc(configFile);
+        String newDest = configManager.getDestinationLoc(configFile);
+        String parameters = configManager.getParameters(configFile);
+        String log = configManager.getLog(logFile);
+        
+        sourceLocation = new File(newSource);
+        destinationLocation = new File(newDest);
+        logTextArea.setText(log);
+        
+        System.out.println(sourceLocation);
+        System.out.println(destinationLocation);
+    }
+    
 }
