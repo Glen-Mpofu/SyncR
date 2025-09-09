@@ -9,9 +9,12 @@ import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFrame;
@@ -114,16 +117,36 @@ public class SyncRUI {
         syncOther = new JButton("Sync Other Folders");
         syncOther.addActionListener((e) -> {
             int opt = JOptionPane.showConfirmDialog(gui, "Are you sure you'd like to start another \"Sync Session\"? ");
-            if(opt == JOptionPane.YES_OPTION){
-                System.out.println("new session");
-                
+            if(opt == JOptionPane.YES_OPTION){                
                 //save the data of the previous 
                 configManager.saveSyncSession();
                 
-                int incrementor = configManager.incrementor();
-                configManager.setSyncJobCounter(incrementor);
+                int newJobNumber = configManager.incrementor();
+                File newJobFolder = new File(configManager.getJobMainFolder(), "SyncJob"+newJobNumber);
+                if(!newJobFolder.exists())  newJobFolder.mkdir();
                 
-                SyncR.initializeNewSyncJob();
+                configManager.setJobFolderName(newJobFolder);
+                configManager.setSyncJobCounter(newJobNumber);
+                
+                sourceLocation = null;
+                destinationLocation = null;
+                
+                logTextArea.setText("Please click the buttons \"Source\" and \"Destination\" to set the locations of the folders to sync\n");
+                addingNewParameters("[/MIR, /Z, /XO, /XX]");
+                
+                jobHeading.setText(newJobFolder.getName());
+                
+                File newLogFile = new File(newJobFolder, "log_file.txt");
+                if(!newLogFile.exists()) try {
+                    newLogFile.createNewFile();
+                } catch (IOException ex) {
+                    Logger.getLogger(SyncRUI.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                
+                File newConfigFile = new File(newJobFolder, "sync_job"+newJobNumber+".properties");
+                configManager.setConfigFile(newConfigFile);
+                
+                JOptionPane.showMessageDialog(gui, "New Sync Job. Set up the Required Parameters for it!!", "New Sync Job", JOptionPane.INFORMATION_MESSAGE);
             }
         });
         
@@ -252,16 +275,7 @@ public class SyncRUI {
         addingNewParameters(parameters);
         
         System.out.println(parameters);
-        for (Map.Entry<String, JCheckBox> entry : entries) {
-            String paramKey = entry.getKey();      
-            JCheckBox cb = entry.getValue();
-            if(!selectedParameters.contains(paramKey)){
-                cb.setSelected(false);
-            }   
-            else{
-                cb.setSelected(true);
-            }
-        }
+        
         String log = configManager.getLog(logFile);
         
         sourceLocation = new File(newSource);
@@ -279,6 +293,17 @@ public class SyncRUI {
         
         for (String string : token) {
             selectedParameters.add(string);
+        }
+        
+        for (Map.Entry<String, JCheckBox> entry : entries) {
+            String paramKey = entry.getKey();      
+            JCheckBox cb = entry.getValue();
+            if(!selectedParameters.contains(paramKey)){
+                cb.setSelected(false);
+            }   
+            else{
+                cb.setSelected(true);
+            }
         }
     }   
 }

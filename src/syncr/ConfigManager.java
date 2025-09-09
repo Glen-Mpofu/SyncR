@@ -282,4 +282,10 @@ public class ConfigManager {
     public void setJobFolderName(File jobFolderName) {
         this.jobFolderName = jobFolderName;
     }
+
+    public void setConfigFile(File configFile) {
+        this.configFile = configFile;
+    }    
+    
+    
 }
