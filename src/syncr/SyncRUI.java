@@ -59,6 +59,10 @@ public class SyncRUI {
     private JMenu menu;
     private JMenuBar menuBar;    
     
+    
+    //check boxes map
+    private Set<Map.Entry<String, JCheckBox>> entries;
+    
     public SyncRUI() {
         gui = new JFrame("SyncR");
         gui.setSize(500, 420);
@@ -135,7 +139,7 @@ public class SyncRUI {
        
         JPanel middlePnl = new JPanel(new BorderLayout());
             JPanel copyParamPnl = new JPanel(new GridLayout(4, 2));        
-            Set<Map.Entry<String, JCheckBox>> entries = SyncR.getRobocopyParameters().entrySet();
+            entries = SyncR.getRobocopyParameters().entrySet();
              
             for (Map.Entry<String, JCheckBox> entry : entries) {
                 String paramKey = entry.getKey();
@@ -158,9 +162,9 @@ public class SyncRUI {
                         selectedParameters.remove(paramKey);
                         logTextArea.append("\""+checkBox.getText()+" \"parameter removed\n");
                     }
-                });
-    
+                });    
             }
+            
         middlePnl.add(copyParametersLbl, BorderLayout.NORTH);
         middlePnl.add(copyParamPnl, BorderLayout.CENTER);
         
@@ -185,7 +189,6 @@ public class SyncRUI {
         gui.setJMenuBar(menuBar);
         gui.add(mainpanel);
         gui.setVisible(true);  
-
     }
 
     public JFrame getGui() {
@@ -208,6 +211,7 @@ public class SyncRUI {
         return selectedParameters;
     }
     
+    //loading the sync jobs to the menu
     public void loadingSyncJobs(JMenu menu){
         File[] savedSyncJobs = configManager.getJobMainFolder().listFiles();
         
@@ -228,6 +232,7 @@ public class SyncRUI {
         }
     }
 
+    //retrieving/loading the selected job parameters
     private void getJobParameters(File job) {
         File[] listJobFiles = job.listFiles();
         File configFile = null;
@@ -244,14 +249,38 @@ public class SyncRUI {
         String newSource = configManager.getSourceLoc(configFile);
         String newDest = configManager.getDestinationLoc(configFile);
         String parameters = configManager.getParameters(configFile);
+        addingNewParameters(parameters);
+        
+        System.out.println(parameters);
+        for (Map.Entry<String, JCheckBox> entry : entries) {
+            String paramKey = entry.getKey();      
+            JCheckBox cb = entry.getValue();
+            if(!selectedParameters.contains(paramKey)){
+                cb.setSelected(false);
+            }   
+            else{
+                cb.setSelected(true);
+            }
+        }
+        
+        
         String log = configManager.getLog(logFile);
         
         sourceLocation = new File(newSource);
         destinationLocation = new File(newDest);
         logTextArea.setText(log);
         
-        System.out.println(sourceLocation);
-        System.out.println(destinationLocation);
-    }
+        configManager.setJobFolderName(job); 
+    }    
     
+    public void addingNewParameters(String parameters){
+        parameters = parameters.replaceAll("[\\[\\]]", "");
+        String[] token = parameters.split("\\s*,\\s*");
+        
+        selectedParameters.clear();
+        
+        for (String string : token) {
+            selectedParameters.add(string);
+        }
+    }   
 }

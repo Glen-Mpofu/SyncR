@@ -269,5 +269,8 @@ public class ConfigManager {
     public File getJobMainFolder() {
         return jobMainFolder;
     }
- 
+
+    public void setJobFolderName(File jobFolderName) {
+        this.jobFolderName = jobFolderName;
+    }
 }
