@@ -8,7 +8,6 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -17,8 +16,6 @@ import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
-import javax.swing.JMenu;
-import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 
 /**
@@ -67,12 +64,16 @@ public class ConfigManager {
         if(!jobFolderName.exists()) jobFolderName.mkdir();
         setSyncJobCounter(jobNumber);  
         
+        configFile = new File(jobFolderName, "sync_job"+jobNumber+".properties");
+        load();
+        initializeCon();
+        
         logFile = new File(jobFolderName,"log_file.txt");
         if(!logFile.exists()) try {
             logFile.createNewFile();
         } catch (IOException ex) {
             Logger.getLogger(ConfigManager.class.getName()).log(Level.SEVERE, null, ex);
-        }                
+        }  
     }
     
     public File fileChooser(String loc){
@@ -109,17 +110,6 @@ public class ConfigManager {
     
     public void saveSyncSession(){        
         
-        //System.out.println(name);
-
-        String src = ui.getSourceLocation().getAbsolutePath();
-        String dest = ui.getDestinationLocation().getAbsolutePath();
-        
-        String name = src.substring(src.lastIndexOf("\\")+1, src.length()) + "to" + dest.substring(dest.lastIndexOf("\\")+1, dest.length()) + ".properties";
-        
-        configFile = new File(jobFolderName, name.toLowerCase());
-        
-        load();
-        
         saveSourceLoc();
         saveDestinationLoc(); 
         saveParameters();
@@ -138,6 +128,7 @@ public class ConfigManager {
             } catch (IOException ignored) {}
         }
     }
+    
     private void load(File jobConfigFile) {
         if (jobConfigFile.exists()) {
             try (FileInputStream fis = new FileInputStream(jobConfigFile)) {
@@ -153,17 +144,35 @@ public class ConfigManager {
     }
     
     private void saveParameters(){
-       props.setProperty("Parameters", ui.getSelectedParameters().toString());
+       String parameters = (!ui.getSelectedParameters().isEmpty())
+               ? ui.getSelectedParameters().toString()
+               : "[/MIR, /Z, /XO, /XX]";
+        
+        props.setProperty("Parameters", parameters);
        save();
     }
     
     private void saveSourceLoc(){
-        props.setProperty("SourceLocation", ui.getSourceLocation().getAbsolutePath());
+        String sourceLocation = (ui.getSourceLocation() != null) 
+                ? ui.getSourceLocation().getAbsolutePath() 
+                : "no location set yet";
+        
+        props.setProperty("SourceLocation", sourceLocation);
         save();
     }
+    
     private void saveDestinationLoc(){
-        props.setProperty("DestinationLocation", ui.getDestinationLocation().getAbsolutePath());
+        String destPath = (ui.getDestinationLocation() != null) 
+                    ? ui.getDestinationLocation().getAbsolutePath() 
+                    : "no location set yet";
+        props.setProperty("DestinationLocation", destPath);
         save();
+    }
+    
+    private void initializeCon(){
+        saveParameters();
+        saveSourceLoc();
+        saveDestinationLoc();
     }
     
     //getting the infor stored in the properties folder

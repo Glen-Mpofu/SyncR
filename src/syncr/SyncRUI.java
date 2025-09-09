@@ -69,7 +69,7 @@ public class SyncRUI {
         gui.setTitle("SyncR");
         
         gui.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        
+               
         gui.setLocationRelativeTo(null);
         gui.setResizable(false);
                 
@@ -262,8 +262,6 @@ public class SyncRUI {
                 cb.setSelected(true);
             }
         }
-        
-        
         String log = configManager.getLog(logFile);
         
         sourceLocation = new File(newSource);
