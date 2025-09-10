@@ -358,48 +358,21 @@ public class SyncRUI {
     //loading the sync jobs to the menu
     public void loadingSyncJobs(JMenu menu){
         File[] savedSyncJobs = configManager.getJobMainFolder().listFiles();
-                
+        
+        JMenuItem syncJobMenuItem;
+        
         for (int i = 0; i < savedSyncJobs.length; i++) {
             File job = savedSyncJobs[i];
             
             syncJobMenuItem = new JMenuItem(job.getName());
-                if(!job.getName().endsWith("txt")){                              
-
-                    syncJobMenuItem.addMouseListener(new MouseAdapter(){
-                        @Override
-                        public void mousePressed(MouseEvent e) {
-                            if(SwingUtilities.isRightMouseButton(e)){    
-                                JPopupMenu popup = new JPopupMenu();
-
-                                JMenuItem deleteJob = new JMenuItem("Delete " + job.getName());
-                                deleteJob.addMouseListener(new MouseAdapter() {
-                                    @Override
-                                    public void mousePressed(MouseEvent e) {
-                                        System.out.println("Deleting: "+job.getName());
-                                        int confirm = JOptionPane.showConfirmDialog(gui, "Are you sure you want to delete this Sync Job ("+job.getName()+")", "Sync Job Deletion", JOptionPane.WARNING_MESSAGE);
-
-                                        if(confirm == JOptionPane.YES_OPTION){
-                                            deleteJob(job);
-                                            System.out.println("Deleted: "+job.getName());
-                                        }
-                                        menu.remove(syncJobMenuItem);
-                                        menu.revalidate();
-                                        menu.repaint(); 
-                                    }                                
-                                });
-
-                                popup.add(deleteJob);                        
-                                popup.show(e.getComponent(), e.getX(), e.getY());
-
-                            }  
-                            else{
-                                jobHeading.setText(job.getName());
-                                getJobParameters(job);
-                            }
-                        }                    
-                    });
-                    menu.add(syncJobMenuItem);
-               }
+            if(!job.getName().endsWith("txt")){
+                syncJobMenuItem.addActionListener((e) -> {
+                    jobHeading.setText(job.getName());
+                    getJobParameters(job);
+                });
+                
+                menu.add(syncJobMenuItem);
+            }
         }
     }
 
