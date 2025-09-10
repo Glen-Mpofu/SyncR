@@ -10,6 +10,8 @@ import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.Toolkit;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.io.File;
 import java.io.IOException;
@@ -29,8 +31,10 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
 import javax.swing.plaf.basic.BasicBorders;
 
@@ -74,6 +78,7 @@ public class SyncRUI {
     //MENU, MENU BAR AND MENU ITEMS
     private JMenu menu;
     private JMenu newSyncJobMenu;
+    private JMenu deleteSyncJob;
     private JMenuBar menuBar;        
     
     
@@ -96,8 +101,7 @@ public class SyncRUI {
         }
         else{
             System.err.println("Icon not found");
-        }
-            
+        }            
         
        // Main panel with BorderLayout
         mainpanel = new JPanel(new BorderLayout());
@@ -211,42 +215,7 @@ public class SyncRUI {
         newJobItem.addActionListener((e) -> {
             int opt = JOptionPane.showConfirmDialog(gui, "Are you sure you'd like to start another \"Sync Session\"? ");
                 if(opt == JOptionPane.YES_OPTION){                
-                    //save the data of the previous 
-                    configManager.saveSyncSession();
-                    
-                    // CREATING THE FOLDER OF THE NEW JOB 
-                    int newJobNumber = configManager.incrementor();
-                    File newJobFolder = new File(configManager.getJobMainFolder(), "SyncJob"+newJobNumber);
-                    if(!newJobFolder.exists())  newJobFolder.mkdir();
-
-                    configManager.setJobFolderName(newJobFolder);
-                    configManager.setSyncJobCounter(newJobNumber);
-
-                    // SETTING THESE TO NULL. IDK WHY I DID THIS :(
-                    sourceLocation = null;
-                    destinationLocation = null;
-                    
-                    //SETTING THE TEXT AREA TO A DEFAULT MESSAGE FOR THE RESTART
-                    logTextArea.setText("Please click the buttons \"Source\" and \"Destination\" to set the locations of the folders to sync\n");
-                    addingNewParameters("[/MIR, /Z, /XO, /XX]");
-
-                    //SETTING THE HEADING TO THE NEW JOB NAME
-                    jobHeading.setText(newJobFolder.getName());
-
-                    
-                    //NEW LOG FILE CREATION
-                    File newLogFile = new File(newJobFolder, "log_file.txt");
-                    if(!newLogFile.exists()) try {
-                        newLogFile.createNewFile();
-                    } catch (IOException ex) {
-                        Logger.getLogger(SyncRUI.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-
-                    //NEW CONFIG FILE CREATION AND OVERRIDING THE OLD ONE
-                    File newConfigFile = new File(newJobFolder, "sync_job"+newJobNumber+".properties");
-                    configManager.setConfigFile(newConfigFile);
-
-                    JOptionPane.showMessageDialog(gui, "New Sync Job. Set up the Required Parameters for it!!", "New Sync Job", JOptionPane.INFORMATION_MESSAGE);
+                    newSyncJob();
                 }
         });
         
@@ -255,8 +224,26 @@ public class SyncRUI {
         
         newSyncJobMenu.add(newJobItem);
         
+        //delete menu 
+        deleteSyncJob = new JMenu("Delete Sync Job");
+        JMenuItem delete = new JMenuItem("Delete");
+        
+        delete.addActionListener((e) -> {
+            String jobName = jobHeading.getText();
+            deleteJob(new File(configManager.getJobMainFolder(), jobName));
+            
+            loadingAJob();
+                    
+            menu.remove(new JMenuItem(jobName));
+            menu.revalidate();
+            menu.repaint();
+        });
+        deleteSyncJob.add(delete);
+        
+        
         menuBar.add(menu);
         menuBar.add(newSyncJobMenu);
+        menuBar.add(deleteSyncJob);
         
         mainpanel.add(topPnl, BorderLayout.NORTH);
         mainpanel.add(middlePnl, BorderLayout.CENTER);
@@ -277,13 +264,7 @@ public class SyncRUI {
                     File job_folder = new File(configManager.getJobMainFolder(),configManager.getJobFolderName());
                     
                     //deleting the files inside first
-                    File files[] = job_folder.listFiles();
-                    for (File file : files) {
-                        file.delete();
-                    }
-                    
-                    //deleting the folder
-                    job_folder.delete();
+                    deleteJob(job_folder);
                     
                     //System.out.println(job_folder.getAbsolutePath());
                     
@@ -297,6 +278,46 @@ public class SyncRUI {
         gui.setJMenuBar(menuBar);
         gui.add(mainpanel);
         gui.setVisible(true);  
+    }
+    
+    public void newSyncJob(){
+        //save the data of the previous 
+        configManager.saveSyncSession();
+
+        // CREATING THE FOLDER OF THE NEW JOB 
+        int newJobNumber = configManager.incrementor();
+        File newJobFolder = new File(configManager.getJobMainFolder(), "SyncJob"+newJobNumber);
+        if(!newJobFolder.exists())  newJobFolder.mkdir();
+
+        configManager.setJobFolderName(newJobFolder);
+        configManager.setSyncJobCounter(newJobNumber);
+
+        // SETTING THESE TO NULL. IDK WHY I DID THIS :(
+        sourceLocation = null;
+        destinationLocation = null;
+
+        //SETTING THE TEXT AREA TO A DEFAULT MESSAGE FOR THE RESTART
+        logTextArea.setText("Please click the buttons \"Source\" and \"Destination\" to set the locations of the folders to sync\n");
+        addingNewParameters("[/MIR, /Z, /XO, /XX]");
+
+        //SETTING THE HEADING TO THE NEW JOB NAME
+        jobHeading.setText(newJobFolder.getName());
+
+
+        //NEW LOG FILE CREATION
+        File newLogFile = new File(newJobFolder, "log_file.txt");
+        if(!newLogFile.exists()) try {
+            newLogFile.createNewFile();
+        } catch (IOException ex) {
+            Logger.getLogger(SyncRUI.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        //NEW CONFIG FILE CREATION AND OVERRIDING THE OLD ONE
+        File newConfigFile = new File(newJobFolder, "sync_job"+newJobNumber+".properties");
+        configManager.setConfigFile(newConfigFile);
+
+        JOptionPane.showMessageDialog(gui, "New Sync Job. Set up the Required Parameters for it!!", "New Sync Job", JOptionPane.INFORMATION_MESSAGE);
+                
     }
 
     // I DID THIS SO ALL JOPTIONPANES IN THE OTHER CLASSES DISPLAY ON TOP OF THE GUI WHEN THEY APPEAR ON THE SCREEEN
@@ -320,25 +341,65 @@ public class SyncRUI {
     public ArrayList<String> getSelectedParameters() {
         return selectedParameters;
     }
+    private JMenuItem syncJobMenuItem;
+    
+    public void loadingAJob(){
+        File[] savedSyncJobs = configManager.getJobMainFolder().listFiles();
+        File job = savedSyncJobs[savedSyncJobs.length-1];
+        if(job != null && !job.getName().endsWith(".txt")){
+            jobHeading.setText(job.getName());
+            getJobParameters(job);
+        }
+        else{
+            newSyncJob();
+        }
+    }
     
     //loading the sync jobs to the menu
     public void loadingSyncJobs(JMenu menu){
         File[] savedSyncJobs = configManager.getJobMainFolder().listFiles();
-        
-        JMenuItem syncJobMenuItem;
-        
+                
         for (int i = 0; i < savedSyncJobs.length; i++) {
             File job = savedSyncJobs[i];
             
             syncJobMenuItem = new JMenuItem(job.getName());
-            if(!job.getName().endsWith("txt")){
-                syncJobMenuItem.addActionListener((e) -> {
-                    jobHeading.setText(job.getName());
-                    getJobParameters(job);
-                });
-                
-                menu.add(syncJobMenuItem);
-            }
+                if(!job.getName().endsWith("txt")){                              
+
+                    syncJobMenuItem.addMouseListener(new MouseAdapter(){
+                        @Override
+                        public void mousePressed(MouseEvent e) {
+                            if(SwingUtilities.isRightMouseButton(e)){    
+                                JPopupMenu popup = new JPopupMenu();
+
+                                JMenuItem deleteJob = new JMenuItem("Delete " + job.getName());
+                                deleteJob.addMouseListener(new MouseAdapter() {
+                                    @Override
+                                    public void mousePressed(MouseEvent e) {
+                                        System.out.println("Deleting: "+job.getName());
+                                        int confirm = JOptionPane.showConfirmDialog(gui, "Are you sure you want to delete this Sync Job ("+job.getName()+")", "Sync Job Deletion", JOptionPane.WARNING_MESSAGE);
+
+                                        if(confirm == JOptionPane.YES_OPTION){
+                                            deleteJob(job);
+                                            System.out.println("Deleted: "+job.getName());
+                                        }
+                                        menu.remove(syncJobMenuItem);
+                                        menu.revalidate();
+                                        menu.repaint(); 
+                                    }                                
+                                });
+
+                                popup.add(deleteJob);                        
+                                popup.show(e.getComponent(), e.getX(), e.getY());
+
+                            }  
+                            else{
+                                jobHeading.setText(job.getName());
+                                getJobParameters(job);
+                            }
+                        }                    
+                    });
+                    menu.add(syncJobMenuItem);
+               }
         }
     }
 
@@ -403,4 +464,14 @@ public class SyncRUI {
         menu.repaint();
     }   
        
+    public void deleteJob(File fileTodelete){
+        File files[] = fileTodelete.listFiles();
+        for (File file : files) {
+            file.delete();
+        }
+                    System.out.println("deleting");
+        //deleting the folder
+        fileTodelete.delete();
+    }
+    
 }
