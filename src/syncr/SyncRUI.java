@@ -85,8 +85,8 @@ public class SyncRUI {
     private JMenuBar menuBar;        
     
     // RADIO BUTTON FOR SYNCING
-    private JRadioButton twoWay;
-    private JRadioButton oneWay;
+    private JRadioButton twoWay = new JRadioButton("Two Way");
+    private JRadioButton oneWay = new JRadioButton("One Way");
     
     private ButtonGroup syncTypeGroup;
     
@@ -100,6 +100,8 @@ public class SyncRUI {
                
         gui.setLocationRelativeTo(null);
         gui.setResizable(false);
+        
+        twoWay.setSelected(true);
         
         //SETTING THE ICON
         URL iconUrl = getClass().getResource("/resources/SyncRLogo.png");
@@ -218,11 +220,8 @@ public class SyncRUI {
             }
             
         // Radio Buttons
-        JPanel radioPanel = new JPanel(new FlowLayout());
-        oneWay = new JRadioButton("One Way");
-        twoWay = new JRadioButton("Two Way");
-        twoWay.setSelected(true);
-        
+        JPanel radioPanel = new JPanel(new FlowLayout());        
+                
         syncTypeGroup = new ButtonGroup();
         syncTypeGroup.add(oneWay);
         syncTypeGroup.add(twoWay);        

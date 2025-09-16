@@ -156,12 +156,12 @@ public class ConfigManager {
     
     private void saveSyncType(){
         String syncType;
-        JRadioButton oneWay = ui.getOneWay();
+        JRadioButton twoWay = ui.getTwoWay();
         
-        if(oneWay.isSelected()){
-            syncType = "One Way";
-        }else{
+        if(twoWay.isSelected()){
             syncType = "Two Way";
+        }else{
+            syncType = "One Way";
         }
         
         props.setProperty("SyncType", syncType);
