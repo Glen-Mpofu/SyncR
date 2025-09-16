@@ -69,6 +69,10 @@ public class SyncRUI {
     private File destinationLocation;
     private File sourceLocation;
     
+    // RADIO BUTTON FOR SYNCING
+    private JRadioButton twoWay = new JRadioButton("Two Way");
+    private JRadioButton oneWay = new JRadioButton("One Way");
+    
     // MANAGER CLASSES
     private ConfigManager configManager = new ConfigManager(this);
     private SyncManager syncManager = new SyncManager(this, configManager);
@@ -83,10 +87,6 @@ public class SyncRUI {
     private JMenu manageSyncJob;
     private JMenu stopSyncJob;
     private JMenuBar menuBar;        
-    
-    // RADIO BUTTON FOR SYNCING
-    private JRadioButton twoWay = new JRadioButton("Two Way");
-    private JRadioButton oneWay = new JRadioButton("One Way");
     
     private ButtonGroup syncTypeGroup;
     
@@ -350,7 +350,8 @@ public class SyncRUI {
         //SETTING THE HEADING TO THE NEW JOB NAME
         jobHeading.setText(newJobFolder.getName());
 
-
+        twoWay.setSelected(true);
+        
         //NEW LOG FILE CREATION
         File newLogFile = new File(newJobFolder, "log_file.txt");
         if(!newLogFile.exists()) try {

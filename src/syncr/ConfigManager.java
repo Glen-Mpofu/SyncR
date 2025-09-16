@@ -39,9 +39,13 @@ public class ConfigManager {
     // sync counter
     private File job_counter_log;
 
+    //sync type
+    private JRadioButton twoWay;
+    
     //methods and classes
     public ConfigManager(SyncRUI ui) {
         this.ui = ui;
+        twoWay = ui.getTwoWay();
         props = new Properties();
         
         appFolder = new File(basePath(), "SyncR");
@@ -156,8 +160,6 @@ public class ConfigManager {
     
     private void saveSyncType(){
         String syncType;
-        JRadioButton twoWay = ui.getTwoWay();
-        
         if(twoWay.isSelected()){
             syncType = "Two Way";
         }else{

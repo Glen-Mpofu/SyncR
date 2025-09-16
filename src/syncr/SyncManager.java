@@ -78,35 +78,45 @@ public class SyncManager {
                         long now = System.currentTimeMillis();
                         ArrayList<String> selectedParameters = ui.getSelectedParameters();
 
-                        if (eventPath.equals(destinationPath) &&
-                            (now - state.lastSyncEToC > COOLDOWN) &&
-                            !state.isSyncing ) {
+                        if (eventPath.equals(sourcePath) &&
+                            (now - state.lastSyncDToS > COOLDOWN) &&
+                            !state.isSyncing && (ui.getOneWay().isSelected() == true)) {
 
-                            // files/folders in the source will be taken to the destination 
-                            state.isSyncing = true;
-                            ui.appendToLogTextArea("Syncing " + destinationPath + " to " + sourcePath + "\n");
-                            configManager.appendToLogFile("Syncing " + destinationPath + " to " + sourcePath + "\n");
+                            //removing the mirror
+                            if(ui.getOneWay().isSelected() == true){
+                                selectedParameters.remove("/MIR");
+                                
+                                if(!selectedParameters.contains("/S /E")){
+                                    selectedParameters.add("/S /E");
+                                    System.out.println(selectedParameters);
+                                }
+                            }
                             
-                            String command = buildCommand(destinationPath, sourcePath, selectedParameters, "dest_to_source.log");
-                            state.process = Runtime.getRuntime().exec(command);
-
-                            state.lastSyncEToC = now;
-                            Thread.sleep(5000);
-                            state.isSyncing = false;
-
-                        } else if (eventPath.equals(sourcePath) &&
-                                   (now - state.lastSyncCToE > COOLDOWN) &&
-                                   !state.isSyncing && !(ui.getOneWay().isSelected())) { // with the ui.getOneWay().isSelected(), this block will only run if 2 way is selected
-
-                            // files/folders in the destinatrion will be taken to the source 
+                            // files/folders in the source will be taken to the destination 
                             state.isSyncing = true;
                             ui.appendToLogTextArea("Syncing " + sourcePath + " to " + destinationPath + "\n");
                             configManager.appendToLogFile("Syncing " + sourcePath + " to " + destinationPath + "\n");
                             
-                            String command = buildCommand(sourcePath, destinationPath, selectedParameters, "source_to_dest.log");
+                            String command = buildCommand(sourcePath, destinationPath, selectedParameters, "dest_to_source.log");
                             state.process = Runtime.getRuntime().exec(command);
 
-                            state.lastSyncCToE = now;
+                            state.lastSyncDToS = now;
+                            Thread.sleep(5000);
+                            state.isSyncing = false;
+
+                        } else if (eventPath.equals(destinationPath) &&
+                                   (now - state.lastSyncSToD > COOLDOWN) &&
+                                   !state.isSyncing && !(ui.getOneWay().isSelected())) { // with the ui.getOneWay().isSelected(), this block will only run if 2 way is selected
+
+                            // files/folders in the destination will be taken to the source 
+                            state.isSyncing = true;
+                            ui.appendToLogTextArea("Syncing " + destinationPath + " to " + sourcePath + "\n");
+                            configManager.appendToLogFile("Syncing " + destinationPath + " to " + sourcePath + "\n");
+                            
+                            String command = buildCommand(destinationPath, sourcePath, selectedParameters, "source_to_dest.log");
+                            state.process = Runtime.getRuntime().exec(command);
+
+                            state.lastSyncSToD = now;
                             Thread.sleep(5000);
                             state.isSyncing = false;
                         }
@@ -142,7 +152,7 @@ public class SyncManager {
     }
 
     
-    private String buildCommand(Path from,Path to,ArrayList<String>params,String logFile){
+    private String buildCommand(Path from, Path to,ArrayList<String>params,String logFile){
         String cmd="robocopy ";
         cmd+="\"" + from.toString() + "\" ";
         cmd+="\"" + to.toString() + "\" ";

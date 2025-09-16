@@ -11,8 +11,8 @@ import java.nio.file.WatchService;
  * @author Reception
  */
 public class JobState {
-    long lastSyncCToE = 0L;
-    long lastSyncEToC = 0L;
+    long lastSyncSToD = 0L;
+    long lastSyncDToS = 0L;
     boolean isSyncing = false;
     Process process;
     WatchService watcher;
