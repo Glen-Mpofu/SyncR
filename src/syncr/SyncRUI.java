@@ -158,7 +158,7 @@ public class SyncRUI {
             syncDataBtn.setBorder(border);
             
             syncDataBtn.addActionListener((e) -> {
-                if(sourceLocation != null || destinationLocation != null){
+                if(sourceLocation != null && destinationLocation != null){
                     String jobName = jobHeading.getText();
                     new Thread(() -> syncManager.sync(jobName)).start(); 
                 }
@@ -375,7 +375,7 @@ public class SyncRUI {
 
     // METHOD FOR LOGGING TO THE TEXT AREA
     public void appendToLogTextArea(String appMsg) {
-        logTextArea.append(appMsg);
+        SwingUtilities.invokeLater(() -> logTextArea.append(appMsg));
     }
 
     public File getDestinationLocation() {
