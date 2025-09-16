@@ -78,7 +78,8 @@ public class SyncRUI {
     //MENU, MENU BAR AND MENU ITEMS
     private JMenu menu;
     private JMenu newSyncJobMenu;
-    private JMenu deleteSyncJob;
+    private JMenu manageSyncJob;
+    private JMenu stopSyncJob;
     private JMenuBar menuBar;        
     
     
@@ -114,17 +115,26 @@ public class SyncRUI {
         configManager.appendToLogFile("Please click the buttons \"Source\" and \"Destination\" to set the locations of the folders to sync\n");
         
         JScrollPane scrollPane = new JScrollPane(logTextArea);
-
+        
+        //BORDER
+        Border border = new BasicBorders.ButtonBorder(Color.white, Color.darkGray, Color.BLACK, Color.lightGray);
+        
         // Buttons at the bottom
         JPanel locationsPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
             //SETTING THE SOURCE LOCATION
             sourceBtn = new JButton("Source");
+            sourceBtn.setBackground(new Color(102, 196, 255));
+            sourceBtn.setBorder(border);
+            
             sourceBtn.addActionListener((e) -> {
                 sourceLocation = configManager.fileChooser("Source");
             });
 
             //SETTING THE DESTINATION LOCATION
             destinationBtn = new JButton("Destination");
+            destinationBtn.setBackground(new Color(102, 196, 255));
+            destinationBtn.setBorder(border);
+                    
             destinationBtn.addActionListener((e) -> {
                 destinationLocation = configManager.fileChooser("Destination");
             });
@@ -135,9 +145,13 @@ public class SyncRUI {
         JPanel bottomPanel = new JPanel(new FlowLayout());
             // SYNCING THE 2 SELECTED FOLDERS -> SOURCE AND DESTINATION
             syncDataBtn = new JButton("Sync Drives/Folders");
+            syncDataBtn.setBackground(new Color(102, 196, 255));
+            syncDataBtn.setBorder(border);
+            
             syncDataBtn.addActionListener((e) -> {
                 if(sourceLocation != null || destinationLocation != null){
-                    new Thread(() -> syncManager.sync()).start(); 
+                    String jobName = jobHeading.getText();
+                    new Thread(() -> syncManager.sync(jobName)).start(); 
                 }
                 else{
                     JOptionPane.showMessageDialog(gui, "Please click the buttons \"Source\" and \"Destination\" to set the locations of the folders to sync\n");
@@ -145,9 +159,10 @@ public class SyncRUI {
             });
 
             //SAVING THE SYNC JOB DATA 
-            saveSyncJob = new JButton("Save Sync Job");
-            Border border = new BasicBorders.ButtonBorder(Color.yellow, Color.darkGray, Color.lightGray, Color.lightGray);
+            saveSyncJob = new JButton("Save Sync Job");            
+            
             saveSyncJob.setBorder(border);
+            saveSyncJob.setBackground(new Color(102, 196, 255));
             
             saveSyncJob.addActionListener((e) -> {
                 configManager.saveSyncSession();
@@ -225,9 +240,12 @@ public class SyncRUI {
         newSyncJobMenu.add(newJobItem);
         
         //delete menu 
-        deleteSyncJob = new JMenu("Delete Sync Job");
-        JMenuItem delete = new JMenuItem("Delete");
-        
+        manageSyncJob = new JMenu("Manage Sync Job");
+        //Manage Sync Job Action Buttons
+        JMenuItem delete = new JMenuItem("Delete");        
+        JMenuItem stop = new JMenuItem("Stop");
+       
+        //Delete Action
         delete.addActionListener((e) -> {
             String jobName = jobHeading.getText();
             deleteJob(new File(configManager.getJobMainFolder(), jobName));
@@ -237,13 +255,23 @@ public class SyncRUI {
             menu.remove(new JMenuItem(jobName));
             menu.revalidate();
             menu.repaint();
+            
         });
-        deleteSyncJob.add(delete);
         
+                
+        //Stop action
+        stop.addActionListener((e)-> {
+            String jobName = jobHeading.getText();
+            syncManager.stopJob(jobName);
+             
+        });
+        
+        manageSyncJob.add(delete);
+        manageSyncJob.add(stop);        
         
         menuBar.add(menu);
         menuBar.add(newSyncJobMenu);
-        menuBar.add(deleteSyncJob);
+        menuBar.add(manageSyncJob);
         
         mainpanel.add(topPnl, BorderLayout.NORTH);
         mainpanel.add(middlePnl, BorderLayout.CENTER);
