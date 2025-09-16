@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -32,6 +33,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
@@ -68,8 +70,8 @@ public class SyncRUI {
     private File sourceLocation;
     
     // MANAGER CLASSES
-    private SyncManager syncManager = new SyncManager(this);
     private ConfigManager configManager = new ConfigManager(this);
+    private SyncManager syncManager = new SyncManager(this, configManager);
     
     // LABELS
     private final JLabel copyParametersLbl = new JLabel("Copy Parameters", JLabel.CENTER);    
@@ -82,11 +84,16 @@ public class SyncRUI {
     private JMenu stopSyncJob;
     private JMenuBar menuBar;        
     
+    // RADIO BUTTON FOR SYNCING
+    private JRadioButton twoWay;
+    private JRadioButton oneWay;
+    
+    private ButtonGroup syncTypeGroup;
     
     //CLASSES AND METHODS
     public SyncRUI() {
         gui = new JFrame("SyncR");
-        gui.setSize(500, 420);
+        gui.setSize(500, 440);
         gui.setTitle("SyncR");
         
         gui.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
@@ -210,9 +217,22 @@ public class SyncRUI {
                 });    
             }
             
-        middlePnl.add(copyParametersLbl, BorderLayout.NORTH);
-        middlePnl.add(copyParamPnl, BorderLayout.CENTER);
+        // Radio Buttons
+        JPanel radioPanel = new JPanel(new FlowLayout());
+        oneWay = new JRadioButton("One Way");
+        twoWay = new JRadioButton("Two Way");
+        twoWay.setSelected(true);
         
+        syncTypeGroup = new ButtonGroup();
+        syncTypeGroup.add(oneWay);
+        syncTypeGroup.add(twoWay);        
+       
+        radioPanel.add(oneWay);
+        radioPanel.add(twoWay);
+        
+        middlePnl.add(copyParametersLbl, BorderLayout.NORTH);
+        middlePnl.add(copyParamPnl, BorderLayout.CENTER);        
+        middlePnl.add(radioPanel, BorderLayout.SOUTH);        
         
         //PANEL WITH THE SOURCE AND DESTINATION PANEL, AND THE SAVE BUTTON
         JPanel buttonPanel = new JPanel(new BorderLayout());
@@ -366,9 +386,18 @@ public class SyncRUI {
         return sourceLocation;
     }    
 
+    public JRadioButton getTwoWay() {
+        return twoWay;
+    }
+
+    public JRadioButton getOneWay() {
+        return oneWay;
+    }
+
     public ArrayList<String> getSelectedParameters() {
         return selectedParameters;
     }
+    
     private JMenuItem syncJobMenuItem;
     
     public void loadingAJob(){
@@ -424,6 +453,10 @@ public class SyncRUI {
         String newSource = configManager.getSourceLoc(configFile);
         String newDest = configManager.getDestinationLoc(configFile);
         String parameters = configManager.getParameters(configFile);
+        String syncType = configManager.getSyncType(configFile);
+        
+        setSyncType(syncType);
+        
         addingNewParameters(parameters);
         
         String log = configManager.getLog(logFile);
@@ -434,8 +467,7 @@ public class SyncRUI {
         
         configManager.setJobFolderName(job); 
     }    
-    
-    
+
     //METHOD FOR CHECKING OR UNCHECKING THE PARAMETERS BASED ON THE JOB LOADED
     public void addingNewParameters(String parameters){
         parameters = parameters.replaceAll("[\\[\\]]", "");
@@ -473,6 +505,17 @@ public class SyncRUI {
                     System.out.println("deleting");
         //deleting the folder
         fileTodelete.delete();
+    }
+
+    private void setSyncType(String syncType) {
+        if(syncType.equalsIgnoreCase("One Way")){
+            oneWay.setSelected(true);
+            twoWay.setSelected(false);
+        }
+        else{
+            twoWay.setSelected(true);
+            oneWay.setSelected(false);
+        }
     }
     
 }

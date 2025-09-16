@@ -17,6 +17,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
+import javax.swing.JRadioButton;
 
 /**
  *
@@ -102,7 +103,7 @@ public class ConfigManager {
         }
         else{
             JOptionPane.showMessageDialog(ui.getGui(), "No \"" + loc + "\" folder selected", "SyncR", JOptionPane.WARNING_MESSAGE);
-            ui.appendToLogTextArea("No \"" + loc + "\" folder selected");
+            ui.appendToLogTextArea("No \"" + loc + "\" folder selected \n");
             appendToLogFile("No " + loc +" directory selected \n");
         }
         return selectedFile;
@@ -113,6 +114,7 @@ public class ConfigManager {
         saveSourceLoc();
         saveDestinationLoc(); 
         saveParameters();
+        saveSyncType();
         
         JOptionPane.showMessageDialog(ui.getGui(), getJobFolderName() + " saved");
     }
@@ -152,6 +154,20 @@ public class ConfigManager {
        save();
     }
     
+    private void saveSyncType(){
+        String syncType;
+        JRadioButton oneWay = ui.getOneWay();
+        
+        if(oneWay.isSelected()){
+            syncType = "One Way";
+        }else{
+            syncType = "Two Way";
+        }
+        
+        props.setProperty("SyncType", syncType);
+        save();
+    }
+    
     private void saveSourceLoc(){
         String sourceLocation = (ui.getSourceLocation() != null) 
                 ? ui.getSourceLocation().getAbsolutePath() 
@@ -173,6 +189,7 @@ public class ConfigManager {
         saveParameters();
         saveSourceLoc();
         saveDestinationLoc();
+        saveSyncType();
     }
     
     //getting the infor stored in the properties folder
@@ -196,7 +213,13 @@ public class ConfigManager {
         
         return paramters;
     }
-    ///
+    
+    public String getSyncType(File jobConfigFile){
+        load(jobConfigFile);
+        String paramters = props.getProperty("SyncType");
+        
+        return paramters;
+    } 
     
     public String getLog(File jobLogFile){
         FileReader fr = null;
@@ -286,6 +309,5 @@ public class ConfigManager {
     public void setConfigFile(File configFile) {
         this.configFile = configFile;
     }    
-    
-    
+        
 }

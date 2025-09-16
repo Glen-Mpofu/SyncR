@@ -24,6 +24,7 @@ import java.util.logging.Logger;
  */
 public class SyncManager {
     private SyncRUI ui;
+    private ConfigManager configManager;
     
     private final Map<String, JobState> jobs = new HashMap<>();
         
@@ -33,8 +34,9 @@ public class SyncManager {
     
     private static Long COOLDOWN = 5000l;
     
-    public SyncManager(SyncRUI ui) {
+    public SyncManager(SyncRUI ui, ConfigManager configManager) {
         this.ui = ui;
+        this.configManager = configManager;
     }
     
     public void sync(String jobName) {
@@ -63,7 +65,8 @@ public class SyncManager {
             watchKeyMap.put(sourceKey, sourcePath);
 
             ui.appendToLogTextArea("Watching Source and Destination directories...\n");
-
+            configManager.appendToLogFile("Watching Source and Destination directories...\n");
+            
             while (true) {
                 try {
                     WatchKey key = eWatchService.take();
@@ -77,11 +80,13 @@ public class SyncManager {
 
                         if (eventPath.equals(destinationPath) &&
                             (now - state.lastSyncEToC > COOLDOWN) &&
-                            !state.isSyncing) {
+                            !state.isSyncing ) {
 
+                            // files/folders in the source will be taken to the destination 
                             state.isSyncing = true;
                             ui.appendToLogTextArea("Syncing " + destinationPath + " to " + sourcePath + "\n");
-
+                            configManager.appendToLogFile("Syncing " + destinationPath + " to " + sourcePath + "\n");
+                            
                             String command = buildCommand(destinationPath, sourcePath, selectedParameters, "dest_to_source.log");
                             state.process = Runtime.getRuntime().exec(command);
 
@@ -91,11 +96,13 @@ public class SyncManager {
 
                         } else if (eventPath.equals(sourcePath) &&
                                    (now - state.lastSyncCToE > COOLDOWN) &&
-                                   !state.isSyncing) {
+                                   !state.isSyncing && !(ui.getOneWay().isSelected())) { // with the ui.getOneWay().isSelected(), this block will only run if 2 way is selected
 
+                            // files/folders in the destinatrion will be taken to the source 
                             state.isSyncing = true;
                             ui.appendToLogTextArea("Syncing " + sourcePath + " to " + destinationPath + "\n");
-
+                            configManager.appendToLogFile("Syncing " + sourcePath + " to " + destinationPath + "\n");
+                            
                             String command = buildCommand(sourcePath, destinationPath, selectedParameters, "source_to_dest.log");
                             state.process = Runtime.getRuntime().exec(command);
 
@@ -109,6 +116,7 @@ public class SyncManager {
 
                 } catch (ClosedWatchServiceException ex) {
                     ui.appendToLogTextArea("Watcher closed for job: " + jobName + "\n");
+                    configManager.appendToLogFile("Watcher closed for job: " + jobName + "\n");
                     break;
                 }
             }
@@ -130,6 +138,7 @@ public class SyncManager {
         }
 
         ui.appendToLogTextArea("Stopped Sync Job " + jobName + "\n");
+        configManager.appendToLogFile("Stopped Sync Job " + jobName + "\n");
     }
 
     
