@@ -376,6 +376,7 @@ public class SyncRUI {
         //SETTING THE HEADING TO THE NEW JOB NAME
         jobHeading.setText(newJobFolder.getName());
 
+        // Setting the default Sync Type
         twoWay.setSelected(true);
         
         //NEW CONFIG FILE CREATION AND OVERRIDING THE OLD ONE

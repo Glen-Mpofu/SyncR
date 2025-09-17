@@ -101,7 +101,7 @@ public class ConfigManager {
         return selectedFile;
     } 
     
-    public void saveSyncSession(){        
+    public void saveSyncSession(){       
         
         saveSourceLoc();
         saveDestinationLoc(); 
@@ -162,7 +162,7 @@ public class ConfigManager {
 
         private void saveSourceLoc(){
             String sourceLocation = (ui.getSourceLocation() != null) 
-                    ? ui.getSourceLocation().getAbsolutePath() 
+                    ? ui.getSourceLocation().getAbsolutePath().replace("\\", "/")
                     : "no location set yet";
 
             props.setProperty("SourceLocation", sourceLocation);
@@ -171,7 +171,7 @@ public class ConfigManager {
 
         private void saveDestinationLoc(){
             String destPath = (ui.getDestinationLocation() != null) 
-                        ? ui.getDestinationLocation().getAbsolutePath() 
+                        ? ui.getDestinationLocation().getAbsolutePath().replace("\\", "/")
                         : "no location set yet";
             props.setProperty("DestinationLocation", destPath);
             save();
