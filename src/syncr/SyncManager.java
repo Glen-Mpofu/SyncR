@@ -180,7 +180,11 @@ public class SyncManager {
         for(String p: params){
             cmd+=p+" ";
         }
-        cmd+="/copy:DATSO /R:5 /W:5 /MT:32 /DCOPY:DATEX ";
+        
+        // removed SO from /copy and TEX from /DCOPY to ensure only data and attributes 
+        // of a file are copied. this reduces the buggy two way sync that happens when a one way sync is run
+        // this in no way affects the actual 2 way sync the app also does
+        cmd+="/copy:DAT /R:5 /W:5 /MT:32 /DCOPY:DA ";
         cmd+="/LOG:C:\\Logs\\"+logFile;        
         
         System.out.println(cmd);

@@ -33,10 +33,13 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JProgressBar;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.border.BevelBorder;
 import javax.swing.border.Border;
 import javax.swing.plaf.basic.BasicBorders;
 
@@ -90,10 +93,13 @@ public class SyncRUI {
     
     private ButtonGroup syncTypeGroup;
     
+    //progress bar
+    private JProgressBar progressBar;
+    
     //CLASSES AND METHODS
     public SyncRUI() {
         gui = new JFrame("SyncR");
-        gui.setSize(500, 440);
+        gui.setSize(500, 480);
         gui.setTitle("SyncR");
         
         gui.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
@@ -102,6 +108,14 @@ public class SyncRUI {
         gui.setResizable(false);
         
         twoWay.setSelected(true);
+        
+        //look and feel
+        
+        try {
+            UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
+        } catch(Exception e){
+            e.printStackTrace();
+        }
         
         //SETTING THE ICON
         URL iconUrl = getClass().getResource("/resources/SyncRLogo.png");
@@ -181,6 +195,14 @@ public class SyncRUI {
         bottomPanel.add(syncDataBtn, BorderLayout.NORTH);
         bottomPanel.add(saveSyncJob, BorderLayout.CENTER);
         
+        //progress bar
+        progressBar = new JProgressBar();        
+        progressBar.setBorder(new BevelBorder(0));
+        progressBar.setForeground(Color.red);
+        progressBar.setMinimum(0);
+        progressBar.setMaximum(10);
+        progressBar.setValue(7);
+        
         // PANEL WITH THE TEXTAREA AND HEADING
         JPanel topPnl = new JPanel(new BorderLayout());
         // HEADING FOR EACH JOB -> DYNAMIC. NAMED AFTER THE RESPECTIVE JOB
@@ -188,6 +210,7 @@ public class SyncRUI {
             jobHeading.setHorizontalAlignment(JLabel.CENTER);
         topPnl.add(jobHeading, BorderLayout.NORTH);
         topPnl.add(scrollPane, BorderLayout.CENTER);
+        topPnl.add(progressBar, BorderLayout.SOUTH);
        
         // PANEL WITH THE CHECKBOXES
         JPanel middlePnl = new JPanel(new BorderLayout());
