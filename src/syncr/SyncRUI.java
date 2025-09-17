@@ -135,7 +135,6 @@ public class SyncRUI {
         logTextArea.setEditable(false);
         logTextArea.append("Please click the buttons \"Source\" and \"Destination\" to set the locations of the folders to sync\n");
         //config append
-        configManager.appendToLogFile("Please click the buttons \"Source\" and \"Destination\" to set the locations of the folders to sync\n");
         
         JScrollPane scrollPane = new JScrollPane(logTextArea);
         
@@ -208,6 +207,8 @@ public class SyncRUI {
         // HEADING FOR EACH JOB -> DYNAMIC. NAMED AFTER THE RESPECTIVE JOB
             jobHeading = new JLabel(configManager.getJobFolderName());
             jobHeading.setHorizontalAlignment(JLabel.CENTER);
+            
+            
         topPnl.add(jobHeading, BorderLayout.NORTH);
         topPnl.add(scrollPane, BorderLayout.CENTER);
         topPnl.add(progressBar, BorderLayout.SOUTH);
@@ -293,11 +294,12 @@ public class SyncRUI {
             deleteJob(new File(configManager.getJobMainFolder(), jobName));
             
             loadingAJob();
-                    
+            
+            configManager.setSyncJobCounter(1);
+            
             menu.remove(new JMenuItem(jobName));
             menu.revalidate();
-            menu.repaint();
-            
+            menu.repaint();            
         });
         
                 
@@ -376,20 +378,11 @@ public class SyncRUI {
 
         twoWay.setSelected(true);
         
-        //NEW LOG FILE CREATION
-        File newLogFile = new File(newJobFolder, "log_file.txt");
-        if(!newLogFile.exists()) try {
-            newLogFile.createNewFile();
-        } catch (IOException ex) {
-            Logger.getLogger(SyncRUI.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
         //NEW CONFIG FILE CREATION AND OVERRIDING THE OLD ONE
         File newConfigFile = new File(newJobFolder, "sync_job"+newJobNumber+".properties");
         configManager.setConfigFile(newConfigFile);
 
-        JOptionPane.showMessageDialog(gui, "New Sync Job. Set up the Required Parameters for it!!", "New Sync Job", JOptionPane.INFORMATION_MESSAGE);
-                
+        JOptionPane.showMessageDialog(gui, "New Sync Job. Set up the Required Parameters for it!!", "New Sync Job", JOptionPane.INFORMATION_MESSAGE);         
     }
 
     // I DID THIS SO ALL JOPTIONPANES IN THE OTHER CLASSES DISPLAY ON TOP OF THE GUI WHEN THEY APPEAR ON THE SCREEEN
@@ -483,7 +476,7 @@ public class SyncRUI {
         
         addingNewParameters(parameters);
         
-        String log = configManager.getLog(logFile);
+        String log = configManager.getTALog(configFile);
         
         sourceLocation = new File(newSource);
         destinationLocation = new File(newDest);
@@ -541,5 +534,9 @@ public class SyncRUI {
             oneWay.setSelected(false);
         }
     }
+
+    public JTextArea getLogTextArea() {
+        return logTextArea;
+    }    
     
 }
