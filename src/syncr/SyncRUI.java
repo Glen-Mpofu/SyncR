@@ -172,11 +172,16 @@ public class SyncRUI {
             
             syncDataBtn.addActionListener((e) -> {
                 if(sourceLocation != null && destinationLocation != null){
-                    String jobName = jobHeading.getText();
-                    new Thread(() -> syncManager.sync(jobName)).start(); 
+                    if(!(sourceLocation.getAbsolutePath().equals(destinationLocation.getAbsolutePath()))){
+                        String jobName = jobHeading.getText();
+                        new Thread(() -> syncManager.sync(jobName)).start(); 
+                    }  
+                    else{
+                        JOptionPane.showMessageDialog(gui, "Source and Destination cannot be the same location. Please renter both and make sure they are different", "Sorry", JOptionPane.ERROR_MESSAGE);
+                    }
                 }
                 else{
-                    JOptionPane.showMessageDialog(gui, "Please click the buttons \"Source\" and \"Destination\" to set the locations of the folders to sync\n");
+                    JOptionPane.showMessageDialog(gui, "Please click the buttons \"Source\" and \"Destination\" to set the locations of the folders to sync");
                 }
             });
 
@@ -199,14 +204,13 @@ public class SyncRUI {
         progressBar.setBorder(new BevelBorder(0));
         progressBar.setForeground(Color.red);
         progressBar.setMinimum(0);
-        progressBar.setMaximum(5000);
+        progressBar.setMaximum(100);
         
         // PANEL WITH THE TEXTAREA AND HEADING
         JPanel topPnl = new JPanel(new BorderLayout());
         // HEADING FOR EACH JOB -> DYNAMIC. NAMED AFTER THE RESPECTIVE JOB
             jobHeading = new JLabel(configManager.getJobFolderName());
             jobHeading.setHorizontalAlignment(JLabel.CENTER);
-            
             
         topPnl.add(jobHeading, BorderLayout.NORTH);
         topPnl.add(scrollPane, BorderLayout.CENTER);
@@ -304,14 +308,15 @@ public class SyncRUI {
             menu.remove(new JMenuItem(jobName));
             menu.revalidate();
             menu.repaint();            
-        });
-        
+        });        
                 
         //Stop action
         stop.addActionListener((e)-> {
-            String jobName = jobHeading.getText();
-            syncManager.stopJob(jobName);
-             
+            new Thread(() -> {
+                logTextArea.append("Sync Stopped by User.\n");
+                String jobName = jobHeading.getText();
+                syncManager.stopJob(jobName);
+            }).start();
         });
         
         manageSyncJob.add(delete);
@@ -435,7 +440,17 @@ public class SyncRUI {
                     configFile = listJobFile;
                 }
             }
-
+            
+            if(configFile != null){ 
+                configManager.setConfigFile(configFile);
+                configManager.setJobFolderName(job); 
+            }
+            else{
+                configFile = new File(job, job.getName()+".properties");
+                configManager.setConfigFile(configFile);
+                configManager.setJobFolderName(job); 
+            }
+            
             //SETTING THE NEW SOURCE/DESTINATION LOCATION, AND PARAMETERS
             String newSource = configManager.getSourceLoc(configFile);
             String newDest = configManager.getDestinationLoc(configFile);
@@ -445,15 +460,11 @@ public class SyncRUI {
             logTextArea.setText(null);
             String log = configManager.getTALog(configFile);
             
-            if(configFile != null) configManager.setConfigFile(configFile);
-            
             setSyncType(syncType);        
             addingNewParameters(parameters);
             sourceLocation = new File(newSource);
             destinationLocation = new File(newDest);
             logTextArea.setText(log);
-
-            configManager.setJobFolderName(job); 
         }  
         
         public JTextArea getLogTextArea() {
@@ -463,6 +474,11 @@ public class SyncRUI {
         public JProgressBar getProgressBar() {
             return progressBar;
         }
+
+        public JButton getSyncDataBtn() {
+            return syncDataBtn;
+        }
+
     //////////////////////////////////////////////////////////////////////////////////
         
     /////////////////////////////////////// LOADING METHODS //////////////////////////
@@ -472,8 +488,7 @@ public class SyncRUI {
             File job = savedSyncJobs[savedSyncJobs.length-1];
             if(job != null && !job.getName().endsWith(".txt")){
                 jobHeading.setText(job.getName());
-                getJobParameters(job);
-                
+                getJobParameters(job);                
             }
             else{
                 newSyncJob();

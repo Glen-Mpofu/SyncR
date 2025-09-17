@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.SwingUtilities;
 
 /**
  *
@@ -41,6 +42,9 @@ public class SyncManager {
     
     public void sync(String jobName) {
         try {
+            //disable the sync button when a sync job is taking place
+            ui.getSyncDataBtn().setEnabled(false);
+            
             JobState state = new JobState();
             jobs.put(jobName, state);
 
@@ -66,7 +70,7 @@ public class SyncManager {
 
             ui.appendToLogTextArea("Watching Source and Destination directories...\n");
            
-            while (true) {
+            while (state.isSyncing || true) {
                 try {
                     WatchKey key = eWatchService.take();
                     Path eventPath = watchKeyMap.get(key);
@@ -92,12 +96,7 @@ public class SyncManager {
 
                                 state.lastSyncDToS = now;
                                 Thread.sleep(5000);
-                                
-                                for(int i = 0; i <= 5000; i++){
-                                    Thread.sleep(1000);
-                                    ui.getProgressBar().setValue(i);
-                                }
-                                
+                                                             
                                 state.isSyncing = false;
 
                             } else if (eventPath.equals(destinationPath) &&
@@ -162,6 +161,7 @@ public class SyncManager {
     
     public void stopJob(String jobName) {
         JobState state = jobs.remove(jobName);
+        state.isSyncing = false;
         if (state == null) return;
 
         if (state.watcher != null) {
@@ -172,7 +172,10 @@ public class SyncManager {
             state.process.destroyForcibly();
         }
 
-        ui.appendToLogTextArea("Stopped " + jobName + "\n");        
+        SwingUtilities.invokeLater(() -> {
+            ui.getSyncDataBtn().setEnabled(true);
+            ui.appendToLogTextArea("Stopped " + jobName + "\n"); 
+        });        
     }
 
     
