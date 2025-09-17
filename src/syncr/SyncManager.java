@@ -128,7 +128,8 @@ public class SyncManager {
                                 ArrayList<String> param = new ArrayList<>(selectedParameters);
                                 if(param.contains("/MIR")){
                                     param.remove("/MIR");
-                                    if(!param.contains("/S")) param.add("/S");
+                                    
+                                    //this parameter will copy any subdirectories too
                                     if(!param.contains("/E")) param.add("/E");                                    
                                 }
                                 selectedParameters = param;

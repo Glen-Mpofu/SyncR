@@ -328,6 +328,7 @@ public class SyncRUI {
                 if(choice == JOptionPane.YES_OPTION){
                     configManager.saveSyncSession();
                     gui.dispose();
+                    gui.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
                 }
                 else if (choice == JOptionPane.NO_OPTION){
                     //DELETE SYNCJOB FILE AND MINUS 1 FROM THE SAVED SYNC JOB COUNTER
@@ -467,7 +468,7 @@ public class SyncRUI {
                 configFile = listJobFile;
             }
             //LOOKING FOR THE LOG FILE
-            else if(listJobFile.getName().endsWith(".txt")){
+            if(listJobFile.getName().endsWith(".txt")){
                 logFile = listJobFile;
             }
         }
