@@ -397,7 +397,10 @@ public class SyncRUI {
 
     // METHOD FOR LOGGING TO THE TEXT AREA
         public void appendToLogTextArea(String appMsg) {
-            SwingUtilities.invokeLater(() -> logTextArea.append(appMsg));
+            SwingUtilities.invokeLater(() -> {
+                logTextArea.append(appMsg);
+                configManager.saveTextAreaLog();
+            });
         }
 
     ////////////////////////GETTER METHODS//////////////////////////////
@@ -441,7 +444,9 @@ public class SyncRUI {
 
             logTextArea.setText(null);
             String log = configManager.getTALog(configFile);
-
+            
+            if(configFile != null) configManager.setConfigFile(configFile);
+            
             setSyncType(syncType);        
             addingNewParameters(parameters);
             sourceLocation = new File(newSource);
@@ -458,9 +463,9 @@ public class SyncRUI {
         public JProgressBar getProgressBar() {
             return progressBar;
         }
-    ///////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////
         
-    /////////////////////////////////////// LOADING METHODS
+    /////////////////////////////////////// LOADING METHODS //////////////////////////
 
         public void loadingAJob(){
             File[] savedSyncJobs = configManager.getJobMainFolder().listFiles();
@@ -468,6 +473,7 @@ public class SyncRUI {
             if(job != null && !job.getName().endsWith(".txt")){
                 jobHeading.setText(job.getName());
                 getJobParameters(job);
+                
             }
             else{
                 newSyncJob();
@@ -491,10 +497,11 @@ public class SyncRUI {
 
                     menu.add(syncJobMenuItem);
                 }
+                
             }
         }
 
-        /////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////
         
       
     //METHOD FOR CHECKING OR UNCHECKING THE PARAMETERS BASED ON THE JOB LOADED

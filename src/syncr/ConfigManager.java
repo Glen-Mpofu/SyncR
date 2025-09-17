@@ -182,14 +182,16 @@ public class ConfigManager {
                     ? ui.getLogTextArea().getText() 
                     : "No Data As Of Yet";
             props.setProperty("LogData", taLog);
+            save();
         }
 
         private void initializeCon(){
-            saveParameters();
-            saveSourceLoc();
-            saveDestinationLoc();
-            saveSyncType();
-            saveTextAreaLog();
+            props.setProperty("Parameters", "no parameters set yet");
+            props.setProperty("SourceLocation", "no location set yet");
+            props.setProperty("DestinationLocation", "no location set yet");
+            props.setProperty("LogData", "No Data As Of Yet");
+            props.setProperty("SyncType", "Two Way");
+            save(); // write once
         }
     ////////////////////////////////////////////////////////////////////////////////
         
