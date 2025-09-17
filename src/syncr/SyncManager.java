@@ -92,6 +92,12 @@ public class SyncManager {
 
                                 state.lastSyncDToS = now;
                                 Thread.sleep(5000);
+                                
+                                for(int i = 0; i <= 5000; i++){
+                                    Thread.sleep(1000);
+                                    ui.getProgressBar().setValue(i);
+                                }
+                                
                                 state.isSyncing = false;
 
                             } else if (eventPath.equals(destinationPath) &&
@@ -166,8 +172,7 @@ public class SyncManager {
             state.process.destroyForcibly();
         }
 
-        ui.appendToLogTextArea("Stopped Sync Job " + jobName + "\n");
-        
+        ui.appendToLogTextArea("Stopped " + jobName + "\n");        
     }
 
     

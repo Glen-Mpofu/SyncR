@@ -199,8 +199,7 @@ public class SyncRUI {
         progressBar.setBorder(new BevelBorder(0));
         progressBar.setForeground(Color.red);
         progressBar.setMinimum(0);
-        progressBar.setMaximum(10);
-        progressBar.setValue(7);
+        progressBar.setMaximum(5000);
         
         // PANEL WITH THE TEXTAREA AND HEADING
         JPanel topPnl = new JPanel(new BorderLayout());
@@ -293,10 +292,15 @@ public class SyncRUI {
             String jobName = jobHeading.getText();
             deleteJob(new File(configManager.getJobMainFolder(), jobName));
             
+            //loads another sync job that is in the stack
             loadingAJob();
             
-            configManager.setSyncJobCounter(1);
-            
+            int currentNum = configManager.getSyncJobCounter();
+            if(currentNum > 0){
+                configManager.setSyncJobCounter(configManager.getSyncJobCounter()-1);
+            }else{
+                configManager.setSyncJobCounter(0);
+            }
             menu.remove(new JMenuItem(jobName));
             menu.revalidate();
             menu.repaint();            
@@ -392,100 +396,107 @@ public class SyncRUI {
     }
 
     // METHOD FOR LOGGING TO THE TEXT AREA
-    public void appendToLogTextArea(String appMsg) {
-        SwingUtilities.invokeLater(() -> logTextArea.append(appMsg));
-    }
-
-    public File getDestinationLocation() {
-        return destinationLocation;
-    }
-
-    public File getSourceLocation() {
-        return sourceLocation;
-    }    
-
-    public JRadioButton getTwoWay() {
-        return twoWay;
-    }
-
-    public JRadioButton getOneWay() {
-        return oneWay;
-    }
-
-    public ArrayList<String> getSelectedParameters() {
-        return selectedParameters;
-    }
-    
-    private JMenuItem syncJobMenuItem;
-    
-    public void loadingAJob(){
-        File[] savedSyncJobs = configManager.getJobMainFolder().listFiles();
-        File job = savedSyncJobs[savedSyncJobs.length-1];
-        if(job != null && !job.getName().endsWith(".txt")){
-            jobHeading.setText(job.getName());
-            getJobParameters(job);
+        public void appendToLogTextArea(String appMsg) {
+            SwingUtilities.invokeLater(() -> logTextArea.append(appMsg));
         }
-        else{
-            newSyncJob();
+
+    ////////////////////////GETTER METHODS//////////////////////////////
+        public File getDestinationLocation() {
+            return destinationLocation;
         }
-    }
-    
-    //loading the sync jobs to the menu
-    public void loadingSyncJobs(JMenu menu){
-        File[] savedSyncJobs = configManager.getJobMainFolder().listFiles();
+
+        public File getSourceLocation() {
+            return sourceLocation;
+        }    
+
+        public JRadioButton getTwoWay() {
+            return twoWay;
+        }
+
+        public JRadioButton getOneWay() {
+            return oneWay;
+        }
+
+        public ArrayList<String> getSelectedParameters() {
+            return selectedParameters;
+        }
         
-        JMenuItem syncJobMenuItem;
+        //retrieving/loading the selected job parameters
+        private void getJobParameters(File job) {
+            File[] listJobFiles = job.listFiles();
+            File configFile = null;
+
+            for (File listJobFile : listJobFiles) {
+                // LOOKING FOR THE CONFIG PROPERTIES FILE
+                if(listJobFile.getName().endsWith(".properties")){
+                    configFile = listJobFile;
+                }
+            }
+
+            //SETTING THE NEW SOURCE/DESTINATION LOCATION, AND PARAMETERS
+            String newSource = configManager.getSourceLoc(configFile);
+            String newDest = configManager.getDestinationLoc(configFile);
+            String parameters = configManager.getParameters(configFile);
+            String syncType = configManager.getSyncType(configFile);
+
+            logTextArea.setText(null);
+            String log = configManager.getTALog(configFile);
+
+            setSyncType(syncType);        
+            addingNewParameters(parameters);
+            sourceLocation = new File(newSource);
+            destinationLocation = new File(newDest);
+            logTextArea.setText(log);
+
+            configManager.setJobFolderName(job); 
+        }  
         
-        for (int i = 0; i < savedSyncJobs.length; i++) {
-            File job = savedSyncJobs[i];
-            
-            syncJobMenuItem = new JMenuItem(job.getName());
-            if(!job.getName().endsWith("txt")){
-                syncJobMenuItem.addActionListener((e) -> {
-                    jobHeading.setText(job.getName());
-                    getJobParameters(job);
-                });
-                
-                menu.add(syncJobMenuItem);
+        public JTextArea getLogTextArea() {
+            return logTextArea;
+        }    
+
+        public JProgressBar getProgressBar() {
+            return progressBar;
+        }
+    ///////////////////////////////////////////////////////////////////
+        
+    /////////////////////////////////////// LOADING METHODS
+
+        public void loadingAJob(){
+            File[] savedSyncJobs = configManager.getJobMainFolder().listFiles();
+            File job = savedSyncJobs[savedSyncJobs.length-1];
+            if(job != null && !job.getName().endsWith(".txt")){
+                jobHeading.setText(job.getName());
+                getJobParameters(job);
+            }
+            else{
+                newSyncJob();
             }
         }
-    }
 
-    //retrieving/loading the selected job parameters
-    private void getJobParameters(File job) {
-        File[] listJobFiles = job.listFiles();
-        File configFile = null;
-        File logFile = null;
-        for (File listJobFile : listJobFiles) {
-            // LOOKING FOR THE CONFIG PROPERTIES FILE
-            if(listJobFile.getName().endsWith(".properties")){
-                configFile = listJobFile;
-            }
-            //LOOKING FOR THE LOG FILE
-            if(listJobFile.getName().endsWith(".txt")){
-                logFile = listJobFile;
+        //loading the sync jobs to the menu
+        private JMenuItem syncJobMenuItem;
+        public void loadingSyncJobs(JMenu menu){
+            File[] savedSyncJobs = configManager.getJobMainFolder().listFiles();
+
+            for (int i = 0; i < savedSyncJobs.length; i++) {
+                File job = savedSyncJobs[i];
+
+                syncJobMenuItem = new JMenuItem(job.getName());
+                if(!job.getName().endsWith("txt")){
+                    syncJobMenuItem.addActionListener((e) -> {
+                        jobHeading.setText(job.getName());
+                        getJobParameters(job);
+                    });
+
+                    menu.add(syncJobMenuItem);
+                }
             }
         }
-        
-        //SETTING THE NEW SOURCE/DESTINATION LOCATION, AND PARAMETERS
-        String newSource = configManager.getSourceLoc(configFile);
-        String newDest = configManager.getDestinationLoc(configFile);
-        String parameters = configManager.getParameters(configFile);
-        String syncType = configManager.getSyncType(configFile);
-        
-        setSyncType(syncType);
-        
-        addingNewParameters(parameters);
-        
-        String log = configManager.getTALog(configFile);
-        
-        sourceLocation = new File(newSource);
-        destinationLocation = new File(newDest);
-        logTextArea.setText(log);
-        
-        configManager.setJobFolderName(job); 
-    }    
 
+        /////////////////////////////////////////////////////////////////////////////////
+        
+      
     //METHOD FOR CHECKING OR UNCHECKING THE PARAMETERS BASED ON THE JOB LOADED
     public void addingNewParameters(String parameters){
         parameters = parameters.replaceAll("[\\[\\]]", "");
@@ -525,19 +536,16 @@ public class SyncRUI {
         fileTodelete.delete();
     }
 
-    private void setSyncType(String syncType) {
-        if(syncType.equalsIgnoreCase("One Way")){
-            oneWay.setSelected(true);
-            twoWay.setSelected(false);
+    //////////////////SETTERS///////////////////////////////////////
+        private void setSyncType(String syncType) {
+            if(syncType.equalsIgnoreCase("One Way")){
+                oneWay.setSelected(true);
+                twoWay.setSelected(false);
+            }
+            else{
+                twoWay.setSelected(true);
+                oneWay.setSelected(false);
+            }
         }
-        else{
-            twoWay.setSelected(true);
-            oneWay.setSelected(false);
-        }
-    }
-
-    public JTextArea getLogTextArea() {
-        return logTextArea;
-    }    
-    
+    //////////////////////////////////////////////////////////////
 }
