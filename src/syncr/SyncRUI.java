@@ -4,15 +4,21 @@
  */
 package syncr;
 
+import java.awt.AWTException;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.Image;
+import java.awt.MenuItem;
+import java.awt.PopupMenu;
+import java.awt.SystemTray;
 import java.awt.Toolkit;
+import java.awt.TrayIcon;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -96,6 +102,9 @@ public class SyncRUI {
     //progress bar
     private JProgressBar progressBar;
     
+    // system tray
+    private TrayIcon trayIcon;
+    
     //CLASSES AND METHODS
     public SyncRUI() {
         gui = new JFrame("SyncR");
@@ -106,6 +115,18 @@ public class SyncRUI {
                
         gui.setLocationRelativeTo(null);
         gui.setResizable(false);
+        
+        //system tray
+        gui.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e){
+                if(SystemTray.isSupported() && trayIcon != null){
+                    trayIcon.displayMessage("SyncR", "App is minimized to tray. Right Click to open or exit", TrayIcon.MessageType.INFO);
+                    gui.setVisible(false);
+                }
+            }
+        });
+        setupTrayIcon();
         
         twoWay.setSelected(true);
         
@@ -333,36 +354,50 @@ public class SyncRUI {
         mainpanel.add(middlePnl, BorderLayout.CENTER);
         mainpanel.add(buttonPanel, BorderLayout.SOUTH);
         
-        //listening to the UI os when it's closed, the current sync job is saved
+        /*//listening to the UI os when it's closed, the current sync job is saved
         gui.addWindowListener(new java.awt.event.WindowAdapter() {
-            @Override
-            public void windowClosing(java.awt.event.WindowEvent e){
-                int choice = JOptionPane.showConfirmDialog(gui, "Do you want to save this Sync Job before exiting?", "Exit SyncR", JOptionPane.YES_NO_CANCEL_OPTION);
-                
-                if(choice == JOptionPane.YES_OPTION){
-                    configManager.saveSyncSession();
-                    gui.dispose();
-                    gui.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-                }
-                else if (choice == JOptionPane.NO_OPTION){
-                    //DELETE SYNCJOB FILE AND MINUS 1 FROM THE SAVED SYNC JOB COUNTER
-                    File job_folder = new File(configManager.getJobMainFolder(),configManager.getJobFolderName());
-                    
-                    //deleting the files inside first
-                    deleteJob(job_folder);
-                    
-                    //System.out.println(job_folder.getAbsolutePath());
-                    
-                    configManager.setSyncJobCounter(configManager.getSyncJobCounter()-1);
-                    gui.dispose();
-                }                
-            }
-        });
+        @Override
+        public void windowClosing(java.awt.event.WindowEvent e){
+        int choice = JOptionPane.showConfirmDialog(gui, "Do you want to save this Sync Job before exiting?", "Exit SyncR", JOptionPane.YES_NO_CANCEL_OPTION);
+        
+        if(choice == JOptionPane.YES_OPTION){
+        configManager.saveSyncSession();
+        gui.dispose();
+        gui.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        }
+        else if (choice == JOptionPane.NO_OPTION){
+        //DELETE SYNCJOB FILE AND MINUS 1 FROM THE SAVED SYNC JOB COUNTER
+        File job_folder = new File(configManager.getJobMainFolder(),configManager.getJobFolderName());
+        
+        //deleting the files inside first
+        deleteJob(job_folder);
+        
+        //System.out.println(job_folder.getAbsolutePath());
+        
+        configManager.setSyncJobCounter(configManager.getSyncJobCounter()-1);
+        gui.dispose();
+        }
+        }
+        });*/
         
         // Add main panel to frame
         gui.setJMenuBar(menuBar);
         gui.add(mainpanel);
         gui.setVisible(true);  
+        
+        File[] savedJobs = configManager.getJobMainFolder().listFiles();
+        if (savedJobs != null && savedJobs.length > 0) {
+            // Sort by name so we pick the last created job
+            java.util.Arrays.sort(savedJobs, (a, b) -> a.getName().compareTo(b.getName()));
+            File lastJob = savedJobs[savedJobs.length - 1];
+            if (!lastJob.getName().endsWith(".txt")) {
+                jobHeading.setText(lastJob.getName());
+                getJobParameters(lastJob);
+            }
+        } else {
+            // No jobs exist -> create first one
+            newSyncJob();
+        }
     }
     
     public void newSyncJob(){
@@ -586,4 +621,34 @@ public class SyncRUI {
             }
         }
     //////////////////////////////////////////////////////////////
+        
+    ////////////////////////////setting up tray icon//////////////////    
+        private void setupTrayIcon(){
+            if(!SystemTray.isSupported()) return;
+            SystemTray tray = SystemTray.getSystemTray();
+            Image image = Toolkit.getDefaultToolkit().getImage(getClass().getResource("/resources/SyncRLogo.png"));
+            
+            PopupMenu popup = new PopupMenu();
+            MenuItem showItem = new MenuItem("Show");
+            showItem.addActionListener(e -> show());
+            MenuItem exitItem = new MenuItem("Exit");
+            exitItem.addActionListener(e -> {
+                tray.remove(trayIcon);
+                System.exit(0);
+            });
+            popup.add(showItem);
+            popup.add(exitItem);
+            
+            trayIcon = new TrayIcon(image, "SyncR", popup);
+            trayIcon.setImageAutoSize(true);
+            trayIcon.addActionListener(e -> show());
+            
+            try{
+                tray.add(trayIcon);
+            }catch(AWTException ignored){}
+        }   
+        
+        public void show(){
+            gui.setVisible(true);
+        }
 }

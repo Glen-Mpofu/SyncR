@@ -61,15 +61,35 @@ public class ConfigManager {
             Logger.getLogger(ConfigManager.class.getName()).log(Level.SEVERE, null, ex);
         }
         
-        int jobNumber = incrementor();
+        /*int jobNumber = incrementor();
         
         jobFolderName = new File(jobMainFolder,"SyncJob"+jobNumber);
         if(!jobFolderName.exists()) jobFolderName.mkdir();
-        setSyncJobCounter(jobNumber);  
+        setSyncJobCounter(jobNumber);
         
         configFile = new File(jobFolderName, "sync_job"+jobNumber+".properties");
         load();
-        initializeCon();                
+        initializeCon();   */           
+        int lastJobNumber = getSyncJobCounter();
+        if(lastJobNumber != 0){
+            jobFolderName = new File(jobMainFolder, "SyncJob"+lastJobNumber);
+            if(!jobFolderName.exists()){
+                jobFolderName.mkdir();
+            }
+        }else{
+            lastJobNumber = 1;
+            jobFolderName = new File(jobMainFolder, "SyncJob1");
+            jobFolderName.mkdir();
+        }
+        setSyncJobCounter(lastJobNumber);
+        configFile = new File(jobFolderName, "sync_job"+lastJobNumber+".properties");
+        
+        if(!configFile.exists()){
+            initializeCon();
+        }else{
+            load();
+        }
+            
     }
     
     public File fileChooser(String loc){
@@ -101,14 +121,12 @@ public class ConfigManager {
         return selectedFile;
     } 
     
-    public void saveSyncSession(){       
-        
+    public void saveSyncSession(){    
         saveSourceLoc();
         saveDestinationLoc(); 
         saveParameters();
         saveSyncType();
-        saveTextAreaLog();
-        
+        saveTextAreaLog();        
         
         JOptionPane.showMessageDialog(ui.getGui(), getJobFolderName() + " saved");
     }
