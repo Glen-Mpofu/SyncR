@@ -218,7 +218,7 @@ public class SyncRUI {
        
         // PANEL WITH THE CHECKBOXES
         JPanel middlePnl = new JPanel(new BorderLayout());
-            JPanel copyParamPnl = new JPanel(new GridLayout(4, 2));        
+            JPanel copyParamPnl = new JPanel(new GridLayout(4, 2));   
             entries = SyncR.getRobocopyParameters().entrySet();
              
             // ITERATING THROUGH THE PARAMETERS AND ADDING THEM TO THE UI
@@ -229,6 +229,7 @@ public class SyncRUI {
                 if(checkBox.isSelected() == true){
                     selectedParameters.add(paramKey);                    
                 }
+                checkBox.setOpaque(false);
                 copyParamPnl.add(checkBox);
                 
                 //check box action listener
@@ -250,6 +251,7 @@ public class SyncRUI {
         JPanel radioPanel = new JPanel(new FlowLayout());        
                 
         syncTypeGroup = new ButtonGroup();
+        oneWay.setOpaque(false);twoWay.setOpaque(false);
         syncTypeGroup.add(oneWay);
         syncTypeGroup.add(twoWay);        
        

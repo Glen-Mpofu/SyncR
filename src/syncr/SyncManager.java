@@ -7,11 +7,15 @@ package syncr;
 import java.io.IOException;
 import java.nio.file.ClosedWatchServiceException;
 import java.nio.file.FileSystems;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -53,20 +57,10 @@ public class SyncManager {
 
             Path sourcePath = ui.getSourceLocation().toPath();
             Path destinationPath = ui.getDestinationLocation().toPath();
-
-            WatchKey sourceKey = sourcePath.register(eWatchService, 
-                    StandardWatchEventKinds.ENTRY_MODIFY, 
-                    StandardWatchEventKinds.ENTRY_CREATE, 
-                    StandardWatchEventKinds.ENTRY_DELETE);
-
-            WatchKey destinationKey = destinationPath.register(eWatchService, 
-                    StandardWatchEventKinds.ENTRY_MODIFY, 
-                    StandardWatchEventKinds.ENTRY_CREATE, 
-                    StandardWatchEventKinds.ENTRY_DELETE);
-
+            
             Map<WatchKey, Path> watchKeyMap = new HashMap<>();
-            watchKeyMap.put(destinationKey, destinationPath);
-            watchKeyMap.put(sourceKey, sourcePath);
+            registerAll(sourcePath, eWatchService, watchKeyMap);
+            registerAll(destinationPath, eWatchService, watchKeyMap);
 
             ui.appendToLogTextArea("Watching Source and Destination directories...\n");
            
@@ -81,9 +75,18 @@ public class SyncManager {
                         long now = System.currentTimeMillis();
                         ArrayList<String> selectedParameters = ui.getSelectedParameters();
 
+                        //if a new subfolder is created
+                        if(event.kind() == StandardWatchEventKinds.ENTRY_CREATE){
+                            Path child = eventPath.resolve((Path) event.context());
+                            if(Files.isDirectory(child)){
+                                registerAll(child, eWatchService, watchKeyMap);
+                            }
+                        }
+                            
+                        
                         //two way sync
                         if(!(ui.getOneWay().isSelected())){
-                            if (eventPath.equals(sourcePath) &&
+                            if (eventPath.startsWith(sourcePath) &&
                                 (now - state.lastSyncDToS > COOLDOWN) &&
                                 !state.isSyncing) {
 
@@ -99,7 +102,7 @@ public class SyncManager {
                                                              
                                 state.isSyncing = false;
 
-                            } else if (eventPath.equals(destinationPath) &&
+                            } else if (eventPath.startsWith(destinationPath) &&
                                        (now - state.lastSyncSToD > COOLDOWN) &&
                                        !state.isSyncing) { 
 
@@ -117,9 +120,9 @@ public class SyncManager {
                         }
                         //one way
                         else{
-                            if(eventPath.equals(destinationPath)) continue;
+                            if(eventPath.startsWith(destinationPath)) continue;
                             
-                            if (eventPath.equals(sourcePath) &&
+                            if (eventPath.startsWith(sourcePath) &&
                                 (now - state.lastSyncDToS > COOLDOWN) &&
                                 !state.isSyncing) {
 
@@ -127,14 +130,9 @@ public class SyncManager {
                                 state.isSyncing = true;
                                 ui.appendToLogTextArea("One Way Syncing " + sourcePath + " to " + destinationPath + "\n");
                                 
-                                ArrayList<String> param = new ArrayList<>(selectedParameters);
-                                if(param.contains("/MIR")){
-                                    param.remove("/MIR");
-                                    
-                                    //this parameter will copy any subdirectories too
-                                    if(!param.contains("/E")) param.add("/E");                                    
-                                    if(!param.contains("/XN")) param.add("/XN");                                    
-                                }
+                                ArrayList<String> param = new ArrayList<>(selectedParameters);                                                                    
+                                    //if(!param.contains("/E")) param.add("/E");                                       
+                                
                                 selectedParameters = param;
                                 
                                 String command = buildCommand(sourcePath, destinationPath, param, "one_way_sync.log");
@@ -190,10 +188,29 @@ public class SyncManager {
         // removed SO from /copy and TEX from /DCOPY to ensure only data and attributes 
         // of a file are copied. this reduces the buggy two way sync that happens when a one way sync is run
         // this in no way affects the actual 2 way sync the app also does
-        cmd+="/copy:DAT /R:5 /W:5 /MT:32 /DCOPY:DA ";
+        cmd+="/copy:DAT /R:5 /W:5 /MT:32 /DCOPY:DAT ";
         cmd+="/LOG:C:\\Logs\\"+logFile;        
         
         System.out.println(cmd);
         return cmd;
     }    
+    
+    // Method for registering the subdirectories to ensure syncing of files deeper in the directory tree
+    public void registerAll(final Path start, WatchService watcher, Map<WatchKey, Path> watchKeyMap) throws IOException{
+        // register directory and subdirectories
+
+        // this walks through the subdirectories inside the main folder
+        Files.walkFileTree(start, new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException{
+                WatchKey key = dir.register(watcher, 
+                        StandardWatchEventKinds.ENTRY_CREATE,
+                        StandardWatchEventKinds.ENTRY_MODIFY,
+                        StandardWatchEventKinds.ENTRY_DELETE
+                );
+                watchKeyMap.put(key, dir);
+                return FileVisitResult.CONTINUE;
+            }
+        });
+    }
 }
