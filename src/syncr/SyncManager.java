@@ -39,6 +39,8 @@ public class SyncManager {
     
     private static Long COOLDOWN = 5000l;
     
+    private boolean syncTracker;
+    
     public SyncManager(SyncRUI ui, ConfigManager configManager) {
         this.ui = ui;
         this.configManager = configManager;
@@ -82,7 +84,8 @@ public class SyncManager {
                                 registerAll(child, eWatchService, watchKeyMap);
                             }
                         }
-                            
+                            configManager.saveIsSyncing(true);
+                            syncTracker = true;
                         
                         //two way sync
                         if(!(ui.getOneWay().isSelected())){
@@ -92,6 +95,8 @@ public class SyncManager {
 
                                 // files/folders in the source will be taken to the destination 
                                 state.isSyncing = true;
+                                
+                                
                                 ui.appendToLogTextArea("Two Way Syncing " + sourcePath + " to " + destinationPath + "\n");
                                 
                                 String command = buildCommand(sourcePath, destinationPath, selectedParameters, "dest_to_source.log");
@@ -160,6 +165,9 @@ public class SyncManager {
     public void stopJob(String jobName) {
         JobState state = jobs.remove(jobName);
         state.isSyncing = false;
+        configManager.saveIsSyncing(false);
+        syncTracker = false;
+        
         if (state == null) return;
 
         if (state.watcher != null) {
@@ -212,5 +220,9 @@ public class SyncManager {
                 return FileVisitResult.CONTINUE;
             }
         });
+    }
+    
+    public boolean getSyncing(){
+        return syncTracker;
     }
 }

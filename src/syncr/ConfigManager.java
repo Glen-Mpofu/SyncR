@@ -109,6 +109,7 @@ public class ConfigManager {
         saveSyncType();
         saveTextAreaLog();
         
+        
         JOptionPane.showMessageDialog(ui.getGui(), getJobFolderName() + " saved");
     }
     
@@ -193,6 +194,16 @@ public class ConfigManager {
             props.setProperty("SyncType", "Two Way");
             save(); // write once
         }
+        
+        public void saveIsSyncing(boolean isSyncing){   
+            String val = "Not Syncing";
+            if(isSyncing == true){
+                val = "Syncing";
+            }
+            
+            props.setProperty("isSyncing", val);
+            save();
+        }
     ////////////////////////////////////////////////////////////////////////////////
         
     //GETTERS////////////////////////////////////////////////////////////////////
@@ -246,6 +257,18 @@ public class ConfigManager {
             String data = props.getProperty("LogData");
             
             return data;
+        }
+        
+        public boolean isSyncing(File jobConfigFile){
+            load(jobConfigFile);
+            boolean isSyncing = false;
+            
+            String savedData = props.getProperty("isSyncing");
+            if(savedData.equals("Syncing")){
+                isSyncing = true;
+            }
+                    
+            return isSyncing;
         }
     //////////////////////////////////////////////////////////////////////////////
         

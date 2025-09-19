@@ -193,6 +193,7 @@ public class SyncRUI {
             
             saveSyncJob.addActionListener((e) -> {
                 configManager.saveSyncSession();
+                configManager.saveIsSyncing(syncManager.getSyncing());
                 JOptionPane.showMessageDialog(gui, "Changes Saved", "Save", JOptionPane.INFORMATION_MESSAGE);
             });
         
@@ -394,6 +395,9 @@ public class SyncRUI {
         File newConfigFile = new File(newJobFolder, "sync_job"+newJobNumber+".properties");
         configManager.setConfigFile(newConfigFile);
 
+        //enabling the syncjob job button
+        syncDataBtn.setEnabled(true);
+        
         JOptionPane.showMessageDialog(gui, "New Sync Job. Set up the Required Parameters for it!!", "New Sync Job", JOptionPane.INFORMATION_MESSAGE);         
     }
 
@@ -458,7 +462,14 @@ public class SyncRUI {
             String newDest = configManager.getDestinationLoc(configFile);
             String parameters = configManager.getParameters(configFile);
             String syncType = configManager.getSyncType(configFile);
-
+            
+            boolean wasSyncing = configManager.isSyncing(configFile);            
+            if(wasSyncing == true){
+                syncDataBtn.setEnabled(false);
+            }else{
+                syncDataBtn.setEnabled(true);                
+            }
+            
             logTextArea.setText(null);
             String log = configManager.getTALog(configFile);
             
@@ -467,6 +478,7 @@ public class SyncRUI {
             sourceLocation = new File(newSource);
             destinationLocation = new File(newDest);
             logTextArea.setText(log);
+            
         }  
         
         public JTextArea getLogTextArea() {
