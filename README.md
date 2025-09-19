@@ -1,15 +1,18 @@
 
 <h1 align="center">SyncR</h1>
 
-<p align = "center" justifyContent = "center">
-SyncR is a simple yet powerful file synchronization tool with a user-friendly GUI.
-Built on top of robocopy, it makes syncing files and folders accessible to everyone. No command-line experience required.
+<span align = "center" justifyContent = "center">
 
-Why SyncR?
+<p>
+  SyncR is a simple yet powerful file synchronization tool with a user-friendly GUI.
+  Built on top of robocopy, it makes syncing files and folders accessible to everyone. No command-line experience required.
+</p>
+
+<h3>Why SyncR?</h3>
 
 Managing files across multiple devices or drives can be messy. Manual copy-paste is error-prone, and robocopy (while powerful) can be intimidating for non-technical users.
 
-SyncR bridges that gap by providing:
+<h3>SyncR bridges that gap by providing:</h3>
 
 ✅ An easy-to-use interface for creating and managing sync jobs
 
@@ -23,8 +26,7 @@ SyncR bridges that gap by providing:
 
 Whether you’re a student, a professional, or an IT admin, SyncR makes keeping your files in sync simple and reliable.
 
-Use Cases
-
+<h3>Use Cases</h3>
 Personal Backup
 Sync your photos, documents, or projects between your laptop and an external hard drive.
 
@@ -40,21 +42,21 @@ Mirror logs, reports, or project directories between staging and production envi
 Offline/Air-gapped Environments
 A secure local alternative to cloud syncing tools (Google Drive, OneDrive, etc.).
 
-Features
+<h3>Features</h3>
 
-🔄 Two-way sync: keep source and destination updated in both directions
+Two-way sync: keep source and destination updated in both directions
 
-➡️ One-way sync: mirror source to destination (backup style)
+One-way sync: mirror source to destination (backup style)
 
-🖥️ Graphical Interface: no need to memorize robocopy commands
+Graphical Interface: no need to memorize robocopy commands
 
-📊 Progress bar & logs: track sync operations as they happen
+Progress bar & logs: track sync operations as they happen
 
-⏹️ Start/Stop jobs: control your sync operations in real time
+Start/Stop jobs: control your sync operations in real time
 
-📝 Configurable parameters: tailor sync behavior (e.g. /E, /XO, /XX, /MIR)
+Configurable parameters: tailor sync behavior (e.g. /E, /XO, /XX, /MIR)
 
-🛠️ Tech Stack
+<h3>Tech Stack</h3>
 
 Language: Java
 
@@ -64,18 +66,18 @@ File Sync Engine: Windows robocopy
 
 Persistence: Custom config management for storing sync job settings
 
-🚧 Future Improvements
+<h3>Future Improvements</h3>
 
-🔔 Notifications when a sync finishes
+Notifications when a sync finishes
 
-⏰ Scheduled sync jobs
+Scheduled sync jobs
 
-☁️ Cloud integration (Google Drive, OneDrive, S3)
+Cloud integration (Google Drive, OneDrive, S3)
 
-📂 Multi-job dashboard with quick access
+Multi-job dashboard with quick access
 
-🎯 Value Proposition
+<h3>Value Proposition</h3>
 
 SyncR makes file synchronization accessible, reliable, and user-friendly.
 It takes the power of robocopy, adds a clean interface, and gives users full control over their sync jobs — making it perfect for backups, collaboration, or enterprise file management.
-</p>
+</span>
