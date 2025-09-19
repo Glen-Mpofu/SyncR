@@ -398,6 +398,8 @@ public class SyncRUI {
         //enabling the syncjob job button
         syncDataBtn.setEnabled(true);
         
+        configManager.saveIsSyncing(false);
+        
         JOptionPane.showMessageDialog(gui, "New Sync Job. Set up the Required Parameters for it!!", "New Sync Job", JOptionPane.INFORMATION_MESSAGE);         
     }
 
