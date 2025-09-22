@@ -15,8 +15,6 @@ import java.awt.PopupMenu;
 import java.awt.SystemTray;
 import java.awt.Toolkit;
 import java.awt.TrayIcon;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
@@ -29,7 +27,6 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.ButtonGroup;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFrame;
@@ -39,12 +36,10 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
 import javax.swing.JProgressBar;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.Border;
@@ -84,8 +79,8 @@ public class SyncRUI {
     private JRadioButton oneWay = new JRadioButton("One Way");
     
     // MANAGER CLASSES
-    private ConfigManager configManager = new ConfigManager(this);
-    private SyncManager syncManager = new SyncManager(this, configManager);
+    private ConfigManager configManager;
+    private SyncManager syncManager;
     
     // LABELS
     private final JLabel copyParametersLbl = new JLabel("Copy Parameters", JLabel.CENTER);    
@@ -95,7 +90,6 @@ public class SyncRUI {
     private JMenu menu;
     private JMenu newSyncJobMenu;
     private JMenu manageSyncJob;
-    private JMenu stopSyncJob;
     private JMenuBar menuBar;        
     
     private ButtonGroup syncTypeGroup;
@@ -113,6 +107,9 @@ public class SyncRUI {
     
     //CLASSES AND METHODS
     public SyncRUI() {
+        configManager = new ConfigManager(this);
+        syncManager = new SyncManager(this, configManager);
+        
         gui = new JFrame("SyncR");
         gui.setSize(500, 480);
         gui.setTitle("SyncR");
@@ -121,6 +118,7 @@ public class SyncRUI {
                
         gui.setLocationRelativeTo(null);
         gui.setResizable(false);
+        
         
         //system tray
         gui.addWindowListener(new WindowAdapter() {
@@ -394,6 +392,14 @@ public class SyncRUI {
         });*/
         
         // Add main panel to frame
+        
+        //LOADING PREVIOUS JOB
+        File lastJobFolder = configManager.getJobFolder(); // you may need to add this getter
+        if (lastJobFolder != null && lastJobFolder.exists()) {
+            jobHeading.setText(lastJobFolder.getName());
+            getJobParameters(lastJobFolder);
+        }
+        
         gui.setJMenuBar(menuBar);
         gui.add(mainpanel);
         gui.setVisible(true);  
@@ -493,7 +499,7 @@ public class SyncRUI {
         }
         
         //retrieving/loading the selected job parameters
-        private void getJobParameters(File job) {
+        public void getJobParameters(File job) {
             File[] listJobFiles = job.listFiles();
             File configFile = null;
             File log_file = null;
@@ -509,8 +515,6 @@ public class SyncRUI {
                     log_file = listJobFile;
                 }
             }
-            
-            
             
             if(configFile != null){ 
                 configManager.setConfigFile(configFile);
@@ -530,7 +534,7 @@ public class SyncRUI {
             }
             
             String newDest = null;
-            String des = configManager.getSourceLoc(configFile);
+            String des = configManager.getDestinationLoc(configFile);
             if(!des.equals("no location set yet")){
                 newDest = configManager.getDestinationLoc(configFile);
             }
@@ -562,8 +566,7 @@ public class SyncRUI {
             
             JTextArea area = getLogAreaForJob(job.getName());
             area.setText(log);
-            scrollPane.setViewportView(area);
-            
+            scrollPane.setViewportView(area); 
         }     
 
         public JProgressBar getProgressBar() {
@@ -703,7 +706,7 @@ public class SyncRUI {
             JTextArea area = new JTextArea(10, 5);
                 area.setEditable(false);
                 area.append("Please click the buttons \"Source\" and \"Destination\" to set the locations of the folders to sync\n");
-                configManager.appendToLog(jobName, "Please click the buttons \"Source\" and \"Destination\" to set the locations of the folders to sync");
+                
                 return area;
             });
         }

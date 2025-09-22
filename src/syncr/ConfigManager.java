@@ -8,7 +8,6 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -16,7 +15,6 @@ import java.io.IOException;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.imageio.IIOException;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JRadioButton;
@@ -64,21 +62,15 @@ public class ConfigManager {
             Logger.getLogger(ConfigManager.class.getName()).log(Level.SEVERE, null, ex);
         }
         
-        /*int jobNumber = incrementor();
-        
-        jobFolderName = new File(jobMainFolder,"SyncJob"+jobNumber);
-        if(!jobFolderName.exists()) jobFolderName.mkdir();
-        setSyncJobCounter(jobNumber);
-        
-        configFile = new File(jobFolderName, "sync_job"+jobNumber+".properties");
-        load();
-        initializeCon();   */           
+        // views the top most syncjob when the app starts
         int lastJobNumber = getSyncJobCounter();
         if(lastJobNumber != 0){
             jobFolderName = new File(jobMainFolder, "SyncJob"+lastJobNumber);
             if(!jobFolderName.exists()){
                 jobFolderName.mkdir();
             }
+            
+            
         }else{
             lastJobNumber = 1;
             jobFolderName = new File(jobMainFolder, "SyncJob1");
@@ -91,8 +83,7 @@ public class ConfigManager {
             initializeCon();
         }else{
             load();
-        }
-            
+        }            
     }
     
     public File fileChooser(String loc){
@@ -211,7 +202,7 @@ public class ConfigManager {
         }
 
         //saving the log details
-        // chage it to a txt file
+        // change it to a txt file
         public void appendToLog(String jobName, String msg) {
             File jobLog = getJobLogFile(jobName);
 
@@ -284,6 +275,10 @@ public class ConfigManager {
 
         public String getJobFolderName() {
             return jobFolderName.getName();
+        }
+        
+        public File getJobFolder() {
+            return jobFolderName;
         }
 
         public File getJobMainFolder() {
