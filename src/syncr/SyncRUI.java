@@ -267,13 +267,14 @@ public class SyncRUI {
                             selectedParameters.add(paramKey);  
                             JTextArea currentArea = getLogAreaForJob(jobHeading.getText());
                             currentArea.append("\"" + checkBox.getText() + "\" parameter added\n");
-                            
+                            configManager.appendToLog(jobHeading.getText(), "\"" + checkBox.getText() + "\" parameter added");
                         }                       
                     }
                     else{
                         selectedParameters.remove(paramKey);
                         JTextArea currentArea = getLogAreaForJob(jobHeading.getText());
                         currentArea.append("\"" + checkBox.getText() + "\" parameter removed\n");
+                        configManager.appendToLog(jobHeading.getText(), "\"" + checkBox.getText() + "\" parameter removed");
                     }
                 });    
             }
@@ -348,6 +349,7 @@ public class SyncRUI {
             new Thread(() -> {
                 JTextArea currentArea = getLogAreaForJob(jobHeading.getText());
                 currentArea.append("Sync Stopped by User.\n");
+                configManager.appendToLog(jobHeading.getText(), "Sync Stopped by User.");
                 
                 String jobName = jobHeading.getText();
                 syncManager.stopJob(jobName);
@@ -433,7 +435,8 @@ public class SyncRUI {
         JTextArea area = getLogAreaForJob(newJobFolder.getName());
         scrollPane.setViewportView(area);
         area.setText("Please click the buttons \"Source\" and \"Destination\" ...\n");
-
+        configManager.appendToLog(newJobFolder.getName(), "Please click the buttons \"Source\" and \"Destination\" ...");
+        
         addingNewParameters("[/MIR, /Z, /XO, /XX]");
 
         //SETTING THE HEADING TO THE NEW JOB NAME
@@ -459,15 +462,15 @@ public class SyncRUI {
         return gui;
     }
 
-    // METHOD FOR LOGGING TO THE TEXT AREA
+    /* METHOD FOR LOGGING TO THE TEXT AREA
         public void appendToLogTextArea(String jobName, String appMsg) {
             SwingUtilities.invokeLater(() -> {
                 JTextArea area = getLogAreaForJob(jobName);
                 area.append(appMsg + "\n");
-                configManager.saveTextAreaLog(jobName);
+                configManager.appendToLog(jobName, appMsg);                
             });
         }
-
+    */
     ////////////////////////GETTER METHODS//////////////////////////////
         public File getDestinationLocation() {
             return destinationLocation;
@@ -493,13 +496,21 @@ public class SyncRUI {
         private void getJobParameters(File job) {
             File[] listJobFiles = job.listFiles();
             File configFile = null;
+            File log_file = null;
 
+            //getting the config file
             for (File listJobFile : listJobFiles) {
                 // LOOKING FOR THE CONFIG PROPERTIES FILE
                 if(listJobFile.getName().endsWith(".properties")){
                     configFile = listJobFile;
                 }
+                
+                if(listJobFile.getName().endsWith(".txt")){
+                    log_file = listJobFile;
+                }
             }
+            
+            
             
             if(configFile != null){ 
                 configManager.setConfigFile(configFile);
@@ -524,7 +535,12 @@ public class SyncRUI {
                 syncDataBtn.setEnabled(true);                
             }
             
-            String log = configManager.getTALog(configFile);
+            String log = "";
+            try {
+                log = configManager.getTALog(log_file);
+            } catch (IOException ex) {
+                Logger.getLogger(SyncRUI.class.getName()).log(Level.SEVERE, null, ex);
+            }
             
             setSyncType(syncType);        
             addingNewParameters(parameters);
@@ -677,6 +693,7 @@ public class SyncRUI {
             JTextArea area = new JTextArea(10, 5);
                 area.setEditable(false);
                 area.append("Please click the buttons \"Source\" and \"Destination\" to set the locations of the folders to sync\n");
+                configManager.appendToLog(jobName, "Please click the buttons \"Source\" and \"Destination\" to set the locations of the folders to sync");
                 return area;
             });
         }

@@ -8,6 +8,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -15,6 +16,7 @@ import java.io.IOException;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.imageio.IIOException;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JRadioButton;
@@ -40,7 +42,7 @@ public class ConfigManager {
 
     //sync type
     private JRadioButton twoWay;
-    
+        
     //methods and classes
     public ConfigManager(SyncRUI ui) {
         this.ui = ui;
@@ -107,6 +109,8 @@ public class ConfigManager {
                 selectedFile = fChooser.getSelectedFile();
                 JTextArea area = ui.getLogAreaForJob(jobFolderName.getName());
                 area.append(loc+" directory selected \" " + selectedFile.getAbsolutePath() + " \" \n");   
+                
+                appendToLog(jobFolderName.getName(), loc+" directory selected \" " + selectedFile.getAbsolutePath() + " \"");
             }
             else if(confirm == JOptionPane.NO_OPTION){
                 System.out.println("no");
@@ -115,12 +119,14 @@ public class ConfigManager {
                 JOptionPane.showMessageDialog(ui.getGui(), "No \"" + loc + "\" folder selected", "SyncR", JOptionPane.WARNING_MESSAGE);
                 JTextArea area = ui.getLogAreaForJob(jobFolderName.getName());
                 area.append("No " + loc +" directory selected \n");
+                appendToLog(jobFolderName.getName(), "No " + loc +" directory selected");
             }
         }
         else{
             JOptionPane.showMessageDialog(ui.getGui(), "No \"" + loc + "\" folder selected", "SyncR", JOptionPane.WARNING_MESSAGE);
             JTextArea area = ui.getLogAreaForJob(jobFolderName.getName());
             area.append("No \"" + loc + "\" folder selected \n");
+            appendToLog(jobFolderName.getName(), "No " + loc +" directory selected");
         }
         return selectedFile;
     } 
@@ -130,7 +136,7 @@ public class ConfigManager {
         saveDestinationLoc(); 
         saveParameters();
         saveSyncType();
-        saveTextAreaLog(jobFolderName.getName());        
+        //saveTextAreaLog(jobFolderName.getName());        
         
         JOptionPane.showMessageDialog(ui.getGui(), getJobFolderName() + " saved");
     }
@@ -205,21 +211,24 @@ public class ConfigManager {
         }
 
         //saving the log details
-        public void saveTextAreaLog(String jobName){
-           JTextArea area = ui.getLogAreaForJob(jobName); // ask UI for the right one
-            String taLog = (area != null)
-                    ? area.getText()
-                    : "No Data As Of Yet";
+        // chage it to a txt file
+        public void appendToLog(String jobName, String msg) {
+            File jobLog = getJobLogFile(jobName);
 
-            props.setProperty("LogData", taLog);
-            save();
+            try (BufferedWriter bw = new BufferedWriter(new FileWriter(jobLog, true))) {
+                bw.write(msg);
+                bw.newLine();  // ensure each log entry is on its own line
+            } catch (IOException e) {
+                Logger.getLogger(ConfigManager.class.getName()).log(Level.SEVERE, null, e);
+            }
+
         }
 
+        
         private void initializeCon(){
             props.setProperty("Parameters", "no parameters set yet");
             props.setProperty("SourceLocation", "no location set yet");
             props.setProperty("DestinationLocation", "no location set yet");
-            props.setProperty("LogData", "No Data As Of Yet");
             props.setProperty("SyncType", "Two Way");
             save(); // write once
         }
@@ -281,9 +290,21 @@ public class ConfigManager {
             return jobMainFolder;
         }
         
-        public String getTALog(File jobConfigFile){
-            load(jobConfigFile);
-            String data = props.getProperty("LogData");
+        public String getTALog(File logTextFile) throws IOException{
+            String data = "";
+            
+            FileReader fr = new FileReader(logTextFile);
+            BufferedReader br = new BufferedReader(fr);
+            
+            String log = br.readLine();
+            while(log != null){
+                data += log + "\n";
+                
+                log = br.readLine();
+            }
+            
+            br.close();
+            fr.close();
             
             return data;
         }
@@ -299,6 +320,21 @@ public class ConfigManager {
                     
             return isSyncing;
         }
+        
+        private File getJobLogFile(String jobName) {
+            File jobFolder = new File(jobMainFolder, jobName);
+            if (!jobFolder.exists()) jobFolder.mkdir();
+            File logFile = new File(jobFolder, "log_file.txt");
+            if (!logFile.exists()) {
+                try {
+                    logFile.createNewFile();
+                } catch (IOException ex) {
+                    Logger.getLogger(ConfigManager.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            return logFile;
+        }
+
     //////////////////////////////////////////////////////////////////////////////
         
         public int incrementor(){
@@ -331,4 +367,5 @@ public class ConfigManager {
             this.configFile = configFile;
         }    
         
+       
 }

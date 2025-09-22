@@ -67,7 +67,8 @@ public class SyncManager {
             registerAll(destinationPath, eWatchService, watchKeyMap);
 
             area.append("Watching Source and Destination directories...\n");
-           
+            configManager.appendToLog(jobName, "Watching Source and Destination directories...");
+            
             while (state.isSyncing || true) {
                 try {
                     WatchKey key = eWatchService.take();
@@ -100,6 +101,7 @@ public class SyncManager {
                                 
                                 
                                 area.append("Two Way Syncing " + sourcePath + " to " + destinationPath + "\n");
+                                configManager.appendToLog(jobName, "Two Way Syncing " + sourcePath + " to " + destinationPath);
                                 
                                 String command = buildCommand(sourcePath, destinationPath, selectedParameters, "dest_to_source.log");
                                 state.process = Runtime.getRuntime().exec(command);
@@ -116,6 +118,7 @@ public class SyncManager {
                                 // files/folders in the destination will be taken to the source 
                                 state.isSyncing = true;
                                 area.append("Two Way Syncing " + destinationPath + " to " + sourcePath + "\n");
+                                configManager.appendToLog(jobName, "Two Way Syncing " + destinationPath + " to " + sourcePath);
                                 
                                 String command = buildCommand(destinationPath, sourcePath, selectedParameters, "source_to_dest.log");
                                 state.process = Runtime.getRuntime().exec(command);
@@ -136,6 +139,7 @@ public class SyncManager {
                                 // files/folders in the source will be taken to the destination 
                                 state.isSyncing = true;
                                 area.append("One Way Syncing " + sourcePath + " to " + destinationPath + "\n");
+                                configManager.appendToLog(jobName, "One Way Syncing " + sourcePath + " to " + destinationPath);
                                 
                                 ArrayList<String> param = new ArrayList<>(selectedParameters);                                                                    
                                     //if(!param.contains("/E")) param.add("/E");                                       
@@ -156,6 +160,7 @@ public class SyncManager {
 
                 } catch (ClosedWatchServiceException ex) {
                     area.append("Watcher closed for job: " + jobName + "\n");
+                    configManager.appendToLog(jobName, "Watcher closed for job: " + jobName);
                     break;
                 }
             }
@@ -184,6 +189,8 @@ public class SyncManager {
             JTextArea area = ui.getLogAreaForJob(jobName);
             ui.getSyncDataBtn().setEnabled(true);
             area.append("Stopped " + jobName + "\n"); 
+            
+            configManager.appendToLog(jobName, "Stopped " + jobName);
         });        
     }
 
