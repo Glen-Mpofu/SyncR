@@ -345,12 +345,12 @@ public class SyncRUI {
         //Stop action
         stop.addActionListener((e)-> {
             new Thread(() -> {
-                JTextArea currentArea = getLogAreaForJob(jobHeading.getText());
-                currentArea.append("Sync Stopped by User.\n");
-                configManager.appendToLog(jobHeading.getText(), "Sync Stopped by User.");
-                
                 String jobName = jobHeading.getText();
                 syncManager.stopJob(jobName);
+                
+                
+                configManager.appendToLog(jobHeading.getText(), "Sync Stopped by User.");
+                                
             }).start();
         });
         
@@ -518,13 +518,12 @@ public class SyncRUI {
             
             if(configFile != null){ 
                 configManager.setConfigFile(configFile);
-                configManager.setJobFolderName(job); 
             }
             else{
                 configFile = new File(job, job.getName()+".properties");
                 configManager.setConfigFile(configFile);
-                configManager.setJobFolderName(job); 
             }
+            configManager.setJobFolderName(job); 
             
             //SETTING THE NEW SOURCE/DESTINATION LOCATION, AND PARAMETERS
             String newSource = null;

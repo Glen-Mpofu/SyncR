@@ -172,7 +172,7 @@ public class SyncManager {
     public void stopJob(String jobName) {
         JobState state = jobs.remove(jobName);
         state.isSyncing = false;
-        configManager.saveIsSyncing(false);
+        
         syncTracker = false;
         
         if (state == null) return;
@@ -181,17 +181,18 @@ public class SyncManager {
             try { state.watcher.close(); } catch (IOException ignored) {}
         }
 
-        if (state.process != null && state.process.isAlive()) {
-            state.process.destroyForcibly();
-        }
 
+        state.process.destroyForcibly();
+        
         SwingUtilities.invokeLater(() -> {
             JTextArea area = ui.getLogAreaForJob(jobName);
             ui.getSyncDataBtn().setEnabled(true);
             area.append("Stopped " + jobName + "\n"); 
             
             configManager.appendToLog(jobName, "Stopped " + jobName);
-        });        
+        });     
+        
+        configManager.saveIsSyncing(false);
     }
 
     
