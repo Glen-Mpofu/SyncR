@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
@@ -61,7 +62,7 @@ public class SyncRUI {
     private JPanel mainpanel; 
     
     //TEXT AREAS
-    private static JTextArea logTextArea;
+    //private static JTextArea logTextArea;
     
     // ALL MY BUTTONS
     private JButton sourceBtn;    
@@ -104,6 +105,11 @@ public class SyncRUI {
     
     // system tray
     private TrayIcon trayIcon;
+    
+    // text areas for each log
+    private Map<String, JTextArea> logAreas = new HashMap<>();
+    
+    private JScrollPane scrollPane;
     
     //CLASSES AND METHODS
     public SyncRUI() {
@@ -152,12 +158,12 @@ public class SyncRUI {
         mainpanel = new JPanel(new BorderLayout());
 
         // Text area in the center (with scroll if content grows)
-        logTextArea = new JTextArea(10, 5);
-        logTextArea.setEditable(false);
-        logTextArea.append("Please click the buttons \"Source\" and \"Destination\" to set the locations of the folders to sync\n");
+        String activeJob = configManager.getJobFolderName();
+        JTextArea logTextArea = getLogAreaForJob(activeJob);
+        
         //config append
         
-        JScrollPane scrollPane = new JScrollPane(logTextArea);
+        scrollPane = new JScrollPane(logTextArea);
         
         //BORDER
         Border border = new BasicBorders.ButtonBorder(Color.white, Color.darkGray, Color.BLACK, Color.lightGray);
@@ -259,12 +265,15 @@ public class SyncRUI {
                     if(checkBox.isSelected()){
                         if(!selectedParameters.contains(paramKey)){
                             selectedParameters.add(paramKey);  
-                            logTextArea.append("\""+checkBox.getText()+" \"parameter added\n");                            
+                            JTextArea currentArea = getLogAreaForJob(jobHeading.getText());
+                            currentArea.append("\"" + checkBox.getText() + "\" parameter added\n");
+                            
                         }                       
                     }
                     else{
                         selectedParameters.remove(paramKey);
-                        logTextArea.append("\""+checkBox.getText()+" \"parameter removed\n");
+                        JTextArea currentArea = getLogAreaForJob(jobHeading.getText());
+                        currentArea.append("\"" + checkBox.getText() + "\" parameter removed\n");
                     }
                 });    
             }
@@ -337,7 +346,9 @@ public class SyncRUI {
         //Stop action
         stop.addActionListener((e)-> {
             new Thread(() -> {
-                logTextArea.append("Sync Stopped by User.\n");
+                JTextArea currentArea = getLogAreaForJob(jobHeading.getText());
+                currentArea.append("Sync Stopped by User.\n");
+                
                 String jobName = jobHeading.getText();
                 syncManager.stopJob(jobName);
             }).start();
@@ -417,7 +428,12 @@ public class SyncRUI {
         destinationLocation = null;
 
         //SETTING THE TEXT AREA TO A DEFAULT MESSAGE FOR THE RESTART
-        logTextArea.setText("Please click the buttons \"Source\" and \"Destination\" to set the locations of the folders to sync\n");
+        //logTextArea.setText("Please click the buttons \"Source\" and \"Destination\" to set the locations of the folders to sync\n");
+        
+        JTextArea area = getLogAreaForJob(newJobFolder.getName());
+        scrollPane.setViewportView(area);
+        area.setText("Please click the buttons \"Source\" and \"Destination\" ...\n");
+
         addingNewParameters("[/MIR, /Z, /XO, /XX]");
 
         //SETTING THE HEADING TO THE NEW JOB NAME
@@ -444,10 +460,11 @@ public class SyncRUI {
     }
 
     // METHOD FOR LOGGING TO THE TEXT AREA
-        public void appendToLogTextArea(String appMsg) {
+        public void appendToLogTextArea(String jobName, String appMsg) {
             SwingUtilities.invokeLater(() -> {
-                logTextArea.append(appMsg);
-                configManager.saveTextAreaLog();
+                JTextArea area = getLogAreaForJob(jobName);
+                area.append(appMsg + "\n");
+                configManager.saveTextAreaLog(jobName);
             });
         }
 
@@ -507,20 +524,21 @@ public class SyncRUI {
                 syncDataBtn.setEnabled(true);                
             }
             
-            logTextArea.setText(null);
             String log = configManager.getTALog(configFile);
             
             setSyncType(syncType);        
             addingNewParameters(parameters);
             sourceLocation = new File(newSource);
             destinationLocation = new File(newDest);
-            logTextArea.setText(log);
             
-        }  
-        
-        public JTextArea getLogTextArea() {
-            return logTextArea;
-        }    
+            JTextArea newLogArea = getLogAreaForJob(job.getName());
+            scrollPane.setViewportView(newLogArea);
+            
+            JTextArea area = getLogAreaForJob(job.getName());
+            area.setText(log);
+            scrollPane.setViewportView(area);
+            
+        }     
 
         public JProgressBar getProgressBar() {
             return progressBar;
@@ -558,6 +576,8 @@ public class SyncRUI {
                 if(!job.getName().endsWith("txt")){
                     syncJobMenuItem.addActionListener((e) -> {
                         jobHeading.setText(job.getName());
+                        JTextArea newLogArea = getLogAreaForJob(job.getName());
+                        scrollPane.setViewportView(newLogArea);
                         getJobParameters(job);
                     });
 
@@ -652,4 +672,12 @@ public class SyncRUI {
             gui.setVisible(true);
         }
     //////////////////////////////    
+        public JTextArea getLogAreaForJob(String jobName){
+            return logAreas.computeIfAbsent(jobName, k -> {
+            JTextArea area = new JTextArea(10, 5);
+                area.setEditable(false);
+                area.append("Please click the buttons \"Source\" and \"Destination\" to set the locations of the folders to sync\n");
+                return area;
+            });
+        }
 }

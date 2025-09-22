@@ -18,6 +18,7 @@ import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JRadioButton;
+import javax.swing.JTextArea;
 
 /**
  *
@@ -104,19 +105,22 @@ public class ConfigManager {
             int confirm = JOptionPane.showConfirmDialog(ui.getGui(), "Are you sure of the selected directory?");
             if(confirm == JOptionPane.YES_OPTION){
                 selectedFile = fChooser.getSelectedFile();
-                ui.appendToLogTextArea(loc+" directory selected \" " + selectedFile.getAbsolutePath() + " \" \n");   
+                JTextArea area = ui.getLogAreaForJob(jobFolderName.getName());
+                area.append(loc+" directory selected \" " + selectedFile.getAbsolutePath() + " \" \n");   
             }
             else if(confirm == JOptionPane.NO_OPTION){
                 System.out.println("no");
             } 
             else  if(confirm == JOptionPane.CANCEL_OPTION){
                 JOptionPane.showMessageDialog(ui.getGui(), "No \"" + loc + "\" folder selected", "SyncR", JOptionPane.WARNING_MESSAGE);
-                ui.appendToLogTextArea("No " + loc +" directory selected \n");
+                JTextArea area = ui.getLogAreaForJob(jobFolderName.getName());
+                area.append("No " + loc +" directory selected \n");
             }
         }
         else{
             JOptionPane.showMessageDialog(ui.getGui(), "No \"" + loc + "\" folder selected", "SyncR", JOptionPane.WARNING_MESSAGE);
-            ui.appendToLogTextArea("No \"" + loc + "\" folder selected \n");
+            JTextArea area = ui.getLogAreaForJob(jobFolderName.getName());
+            area.append("No \"" + loc + "\" folder selected \n");
         }
         return selectedFile;
     } 
@@ -126,7 +130,7 @@ public class ConfigManager {
         saveDestinationLoc(); 
         saveParameters();
         saveSyncType();
-        saveTextAreaLog();        
+        saveTextAreaLog(jobFolderName.getName());        
         
         JOptionPane.showMessageDialog(ui.getGui(), getJobFolderName() + " saved");
     }
@@ -196,10 +200,12 @@ public class ConfigManager {
             save();
         }
 
-        public void saveTextAreaLog(){
-            String taLog = (ui.getLogTextArea() != null)
-                    ? ui.getLogTextArea().getText() 
+        public void saveTextAreaLog(String jobName){
+           JTextArea area = ui.getLogAreaForJob(jobName); // ask UI for the right one
+            String taLog = (area != null)
+                    ? area.getText()
                     : "No Data As Of Yet";
+
             props.setProperty("LogData", taLog);
             save();
         }

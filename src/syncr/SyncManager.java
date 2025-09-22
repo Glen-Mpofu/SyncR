@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
 
 /**
@@ -48,6 +49,7 @@ public class SyncManager {
     
     public void sync(String jobName) {
         try {
+            JTextArea area = ui.getLogAreaForJob(jobName);
             //disable the sync button when a sync job is taking place
             ui.getSyncDataBtn().setEnabled(false);
             
@@ -64,7 +66,7 @@ public class SyncManager {
             registerAll(sourcePath, eWatchService, watchKeyMap);
             registerAll(destinationPath, eWatchService, watchKeyMap);
 
-            ui.appendToLogTextArea("Watching Source and Destination directories...\n");
+            area.append("Watching Source and Destination directories...\n");
            
             while (state.isSyncing || true) {
                 try {
@@ -97,7 +99,7 @@ public class SyncManager {
                                 state.isSyncing = true;
                                 
                                 
-                                ui.appendToLogTextArea("Two Way Syncing " + sourcePath + " to " + destinationPath + "\n");
+                                area.append("Two Way Syncing " + sourcePath + " to " + destinationPath + "\n");
                                 
                                 String command = buildCommand(sourcePath, destinationPath, selectedParameters, "dest_to_source.log");
                                 state.process = Runtime.getRuntime().exec(command);
@@ -113,7 +115,7 @@ public class SyncManager {
 
                                 // files/folders in the destination will be taken to the source 
                                 state.isSyncing = true;
-                                ui.appendToLogTextArea("Two Way Syncing " + destinationPath + " to " + sourcePath + "\n");
+                                area.append("Two Way Syncing " + destinationPath + " to " + sourcePath + "\n");
                                 
                                 String command = buildCommand(destinationPath, sourcePath, selectedParameters, "source_to_dest.log");
                                 state.process = Runtime.getRuntime().exec(command);
@@ -133,7 +135,7 @@ public class SyncManager {
 
                                 // files/folders in the source will be taken to the destination 
                                 state.isSyncing = true;
-                                ui.appendToLogTextArea("One Way Syncing " + sourcePath + " to " + destinationPath + "\n");
+                                area.append("One Way Syncing " + sourcePath + " to " + destinationPath + "\n");
                                 
                                 ArrayList<String> param = new ArrayList<>(selectedParameters);                                                                    
                                     //if(!param.contains("/E")) param.add("/E");                                       
@@ -153,7 +155,7 @@ public class SyncManager {
                     if (!key.reset()) break;
 
                 } catch (ClosedWatchServiceException ex) {
-                    ui.appendToLogTextArea("Watcher closed for job: " + jobName + "\n");
+                    area.append("Watcher closed for job: " + jobName + "\n");
                     break;
                 }
             }
@@ -179,8 +181,9 @@ public class SyncManager {
         }
 
         SwingUtilities.invokeLater(() -> {
+            JTextArea area = ui.getLogAreaForJob(jobName);
             ui.getSyncDataBtn().setEnabled(true);
-            ui.appendToLogTextArea("Stopped " + jobName + "\n"); 
+            area.append("Stopped " + jobName + "\n"); 
         });        
     }
 
