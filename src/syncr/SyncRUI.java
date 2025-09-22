@@ -434,8 +434,8 @@ public class SyncRUI {
         
         JTextArea area = getLogAreaForJob(newJobFolder.getName());
         scrollPane.setViewportView(area);
-        area.setText("Please click the buttons \"Source\" and \"Destination\" ...\n");
-        configManager.appendToLog(newJobFolder.getName(), "Please click the buttons \"Source\" and \"Destination\" ...");
+        area.setText("Please click the buttons \"Source\" and \"Destination\" to set the locations of the folders to sync");
+        //configManager.appendToLog(newJobFolder.getName(), "Please click the buttons \"Source\" and \"Destination\" to set the locations of the folders to sync");
         
         addingNewParameters("[/MIR, /Z, /XO, /XX]");
 
@@ -523,8 +523,18 @@ public class SyncRUI {
             }
             
             //SETTING THE NEW SOURCE/DESTINATION LOCATION, AND PARAMETERS
-            String newSource = configManager.getSourceLoc(configFile);
-            String newDest = configManager.getDestinationLoc(configFile);
+            String newSource = null;
+            String source = configManager.getSourceLoc(configFile);
+            if(!source.equals("no location set yet")){
+                newSource = configManager.getSourceLoc(configFile);
+            }
+            
+            String newDest = null;
+            String des = configManager.getSourceLoc(configFile);
+            if(!des.equals("no location set yet")){
+                newDest = configManager.getDestinationLoc(configFile);
+            }
+            
             String parameters = configManager.getParameters(configFile);
             String syncType = configManager.getSyncType(configFile);
             
