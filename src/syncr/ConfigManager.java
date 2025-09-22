@@ -69,8 +69,6 @@ public class ConfigManager {
             if(!jobFolderName.exists()){
                 jobFolderName.mkdir();
             }
-            
-            
         }else{
             lastJobNumber = 1;
             jobFolderName = new File(jobMainFolder, "SyncJob1");

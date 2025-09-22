@@ -348,7 +348,6 @@ public class SyncRUI {
                 String jobName = jobHeading.getText();
                 syncManager.stopJob(jobName);
                 
-                
                 configManager.appendToLog(jobHeading.getText(), "Sync Stopped by User.");
                                 
             }).start();

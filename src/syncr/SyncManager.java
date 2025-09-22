@@ -4,6 +4,7 @@
  */
 package syncr;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.ClosedWatchServiceException;
 import java.nio.file.FileSystems;
@@ -21,6 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JOptionPane;
 import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
 
@@ -56,6 +58,11 @@ public class SyncManager {
             JobState state = new JobState();
             jobs.put(jobName, state);
 
+            //getting the sync type
+            File configFile = new File(configManager.getJobFolder(),"sync_job"+jobName.substring(7) + ".properties");
+            String syncType = configManager.getSyncType(configFile);
+            //System.out.println(configFile.getAbsolutePath());            
+            
             WatchService eWatchService = FileSystems.getDefault().newWatchService();
             state.watcher = eWatchService;
 
@@ -91,14 +98,13 @@ public class SyncManager {
                             syncTracker = true;
                         
                         //two way sync
-                        if(!(ui.getOneWay().isSelected())){
+                        if(syncType.equalsIgnoreCase("Two Way")){
                             if (eventPath.startsWith(sourcePath) &&
                                 (now - state.lastSyncDToS > COOLDOWN) &&
                                 !state.isSyncing) {
 
                                 // files/folders in the source will be taken to the destination 
                                 state.isSyncing = true;
-                                
                                 
                                 area.append("Two Way Syncing " + sourcePath + " to " + destinationPath + "\n");
                                 configManager.appendToLog(jobName, "Two Way Syncing " + sourcePath + " to " + destinationPath);
@@ -171,6 +177,12 @@ public class SyncManager {
     
     public void stopJob(String jobName) {
         JobState state = jobs.remove(jobName);
+        if(state == null || state.isSyncing == false){
+            JOptionPane.showMessageDialog(ui.getGui(), "No Sync to Stop", "SyncR", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        configManager.saveIsSyncing(false);
         state.isSyncing = false;
         
         syncTracker = false;
@@ -180,7 +192,6 @@ public class SyncManager {
         if (state.watcher != null) {
             try { state.watcher.close(); } catch (IOException ignored) {}
         }
-
 
         state.process.destroyForcibly();
         
@@ -192,7 +203,7 @@ public class SyncManager {
             configManager.appendToLog(jobName, "Stopped " + jobName);
         });     
         
-        configManager.saveIsSyncing(false);
+        
     }
 
     
