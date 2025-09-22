@@ -162,6 +162,7 @@ public class ConfigManager {
             } catch (IOException ignored) {}
         }
 
+        //saving the copy parameters
         private void saveParameters(){
            String parameters = (!ui.getSelectedParameters().isEmpty())
                    ? ui.getSelectedParameters().toString()
@@ -171,6 +172,7 @@ public class ConfigManager {
            save();
         }
 
+        // saving the sync type information
         private void saveSyncType(){
             String syncType;
             if(twoWay.isSelected()){
@@ -183,6 +185,7 @@ public class ConfigManager {
             save();
         }
 
+        //saving the source location to the config file
         private void saveSourceLoc(){
             String sourceLocation = (ui.getSourceLocation() != null) 
                     ? ui.getSourceLocation().getAbsolutePath().replace("\\", "/")
@@ -192,6 +195,7 @@ public class ConfigManager {
             save();
         }
 
+        //saving the destination location to the config file
         private void saveDestinationLoc(){
             String destPath = (ui.getDestinationLocation() != null) 
                         ? ui.getDestinationLocation().getAbsolutePath().replace("\\", "/")
@@ -200,6 +204,7 @@ public class ConfigManager {
             save();
         }
 
+        //saving the log details
         public void saveTextAreaLog(String jobName){
            JTextArea area = ui.getLogAreaForJob(jobName); // ask UI for the right one
             String taLog = (area != null)
@@ -230,7 +235,7 @@ public class ConfigManager {
         }
     ////////////////////////////////////////////////////////////////////////////////
         
-    //GETTERS////////////////////////////////////////////////////////////////////
+    //GETTERS//////////////////////////////////////////////////////////////////////
         public String getSourceLoc(File jobConfigFile){
             load(jobConfigFile);
             String source = props.getProperty("SourceLocation");
@@ -296,34 +301,34 @@ public class ConfigManager {
         }
     //////////////////////////////////////////////////////////////////////////////
         
-    public int incrementor(){
-        Integer stored_count = getSyncJobCounter();
-        int increment_count;
-        
-        if(stored_count == null){
-            increment_count = 1;
+        public int incrementor(){
+            Integer stored_count = getSyncJobCounter();
+            int increment_count;
+
+            if(stored_count == null){
+                increment_count = 1;
+            }
+            else{
+                increment_count = stored_count+1;
+            }
+            return increment_count;
         }
-        else{
-            increment_count = stored_count+1;
-        }
-        return increment_count;
-    }
     
     ////////////////////////////////SETTERS/////////////////////////////////////////////////////////////
-    public void setSyncJobCounter(int jobNumber){
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(job_counter_log))){
-            bw.write(String.valueOf(jobNumber));
-        } catch (IOException ex) {
-            Logger.getLogger(ConfigManager.class.getName()).log(Level.SEVERE, null, ex);
+        public void setSyncJobCounter(int jobNumber){
+            try (BufferedWriter bw = new BufferedWriter(new FileWriter(job_counter_log))){
+                bw.write(String.valueOf(jobNumber));
+            } catch (IOException ex) {
+                Logger.getLogger(ConfigManager.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } 
+
+        public void setJobFolderName(File jobFolderName) {
+            this.jobFolderName = jobFolderName;
         }
-    } 
 
-    public void setJobFolderName(File jobFolderName) {
-        this.jobFolderName = jobFolderName;
-    }
-
-    public void setConfigFile(File configFile) {
-        this.configFile = configFile;
-    }    
+        public void setConfigFile(File configFile) {
+            this.configFile = configFile;
+        }    
         
 }
