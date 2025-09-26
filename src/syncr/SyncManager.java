@@ -94,7 +94,7 @@ public class SyncManager {
                                 registerAll(child, eWatchService, watchKeyMap);
                             }
                         }
-                            configManager.saveIsSyncing(true);
+                            configManager.saveIsSyncing(configFile, true);
                             syncTracker = true;
                         
                         //two way sync
@@ -181,8 +181,8 @@ public class SyncManager {
             JOptionPane.showMessageDialog(ui.getGui(), "No Sync to Stop", "SyncR", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        
-        configManager.saveIsSyncing(false);
+        File configFile = new File(configManager.getJobFolder(),"sync_job"+jobName.substring(7) + ".properties");
+        configManager.saveIsSyncing(configFile, false);
         state.isSyncing = false;
         
         syncTracker = false;

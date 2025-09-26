@@ -119,7 +119,6 @@ public class SyncRUI {
         gui.setLocationRelativeTo(null);
         gui.setResizable(false);
         
-        
         //system tray
         gui.addWindowListener(new WindowAdapter() {
             @Override
@@ -218,7 +217,8 @@ public class SyncRUI {
             
             saveSyncJob.addActionListener((e) -> {
                 configManager.saveSyncSession();
-                configManager.saveIsSyncing(syncManager.getSyncing());
+                File configFile = new File(configManager.getJobFolder(),"sync_job"+jobHeading.getText().substring(7) + ".properties");
+                configManager.saveIsSyncing(configFile, syncManager.getSyncing());
                 JOptionPane.showMessageDialog(gui, "Changes Saved", "Save", JOptionPane.INFORMATION_MESSAGE);
             });
         
@@ -449,6 +449,7 @@ public class SyncRUI {
 
         // Setting the default Sync Type
         twoWay.setSelected(true);
+       
         
         //NEW CONFIG FILE CREATION AND OVERRIDING THE OLD ONE
         File newConfigFile = new File(newJobFolder, "sync_job"+newJobNumber+".properties");
@@ -456,8 +457,8 @@ public class SyncRUI {
 
         //enabling the syncjob job button
         syncDataBtn.setEnabled(true);
-        
-        configManager.saveIsSyncing(false);
+        File configFile = new File(configManager.getJobFolder(),"sync_job"+jobHeading.getText().substring(7) + ".properties");
+        configManager.saveIsSyncing(configFile, false);
         
         JOptionPane.showMessageDialog(gui, "New Sync Job. Set up the Required Parameters for it!!", "New Sync Job", JOptionPane.INFORMATION_MESSAGE);         
     }
@@ -679,10 +680,15 @@ public class SyncRUI {
             MenuItem showItem = new MenuItem("Show");
             showItem.addActionListener(e -> show());
             MenuItem exitItem = new MenuItem("Exit");
+            
             exitItem.addActionListener(e -> {
                 tray.remove(trayIcon);
+                
+                configManager.saveIsSyncing(sourceLocation, true);
+                
                 System.exit(0);
             });
+            
             popup.add(showItem);
             popup.add(exitItem);
             

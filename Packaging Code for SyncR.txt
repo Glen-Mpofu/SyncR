@@ -1,0 +1,20 @@
+Packaging Code for SyncR
+
+jpackage ^
+ --name SyncR ^
+ --input "C:\Users\Reception\OneDrive - Tshwane University of Technology\Desktop\Tshepo\Java\SyncR\dist" ^
+ --type exe ^
+ --main-jar SyncR.jar ^
+ --main-class syncr.SyncR ^
+ --java-options "-Xmx512m" ^
+ --win-menu ^
+ --win-shortcut ^
+ --verbose ^
+ --dest "C:\Users\Reception\Documents\SyncR_Build" ^
+ --app-version "1.0.0" ^
+ --vendor "TVA" ^
+ --description "SyncR is a folder Syncing App that keeps folders mirrored" ^
+ --win-dir-chooser ^
+ --runtime-image "C:\Program Files\Java\jdk-21" ^
+ --win-per-user-install ^
+ --icon "C:\Users\Reception\OneDrive - Tshwane University of Technology\Desktop\Tshepo\Java\SyncR\src\resources\SyncRLogo.ico"

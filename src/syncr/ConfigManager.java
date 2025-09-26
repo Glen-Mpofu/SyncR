@@ -210,10 +210,8 @@ public class ConfigManager {
             } catch (IOException e) {
                 Logger.getLogger(ConfigManager.class.getName()).log(Level.SEVERE, null, e);
             }
-
         }
 
-        
         private void initializeCon(){
             props.setProperty("Parameters", "no parameters set yet");
             props.setProperty("SourceLocation", "no location set yet");
@@ -222,15 +220,23 @@ public class ConfigManager {
             save(); // write once
         }
         
-        public void saveIsSyncing(boolean isSyncing){   
-            String val = "Not Syncing";
-            if(isSyncing == true){
-                val = "Syncing";
-            }
-            
-            props.setProperty("isSyncing", val);
-            save();
+        // in ConfigManager
+    public void saveIsSyncing(File jobConfigFile, boolean isSyncing) {   
+        Properties jobProps = new Properties();
+        try (FileInputStream fis = new FileInputStream(jobConfigFile)) {
+            jobProps.load(fis);
+        } catch (IOException ignored) {}
+
+        String val = isSyncing ? "Syncing" : "Not Syncing";
+        jobProps.setProperty("isSyncing", val);
+
+        try (FileOutputStream fos = new FileOutputStream(jobConfigFile)) {
+            jobProps.store(fos, "Sync Job Config");
+        } catch (IOException ex) {
+            Logger.getLogger(ConfigManager.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+
     ////////////////////////////////////////////////////////////////////////////////
         
     //GETTERS//////////////////////////////////////////////////////////////////////
